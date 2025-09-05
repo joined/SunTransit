@@ -22,16 +22,12 @@ runs:
           with:
               # TODO This caching seems useless
               path: 'build'
-              key: ${{ runner.os }}-build-v7
+              key: ${{ runner.os }}-build-v8
         - name: Cache managed components
           uses: actions/cache@v3
           with:
               path: 'managed_components'
               key: ${{ runner.os }}-managed_components-${{ hashFiles('dependencies.lock') }}-v2
-        - name: Address ESP-IDF component hash bug
-          run: |
-              rm -rf managed_components/bblanchon__arduinojson/.component_hash
-          shell: bash
         - name: esp-idf build and merge firmware
           run: |
               docker run -t -e IDF_TARGET="esp32" -e GITHUB_ACTIONS=true -v "${GITHUB_WORKSPACE}:/app/${{ github.repository }}" \
