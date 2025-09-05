@@ -97,8 +97,8 @@ jobs:
             - name: Archive build output artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: merged_firmware
-                  path: build/merged_firmware.bin
+                  name: merged-firmware
+                  path: build/merged-firmware.bin
                   compression-level: 0
 
     build_simulator:
