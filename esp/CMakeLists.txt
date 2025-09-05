@@ -19,6 +19,7 @@ else()
     endif()
 
     # TODO This breaks if the dev server is running, fix it
+    # TODO This is executed also when running `idf.py flash`, it shouldn't
     ExternalProject_Add(
         build_frontend
         PREFIX ${CMAKE_BINARY_DIR}/build_frontend
