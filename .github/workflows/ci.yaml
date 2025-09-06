@@ -152,11 +152,9 @@ jobs:
               run: |
                   cd simulator
                   pio run --verbose --environment emulator
-                  ls -la .pio/
-                  ls -la .pio/build/emulator/
             - name: Archive build output artifacts
               uses: actions/upload-artifact@v4
               with:
                   name: simulator
-                  path: .pio/build/emulator/program
+                  path: simulator/.pio/build/emulator/program
                   compression-level: 0
