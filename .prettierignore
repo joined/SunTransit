@@ -1,6 +1,9 @@
-.clang-format
-pnpm-lock.yaml
-.mypy_cache/
-
-# Managed by `idf.py`
-esp/idf_component.yml
+/*
+!/docs/*.md
+!/frontend/
+!/jest.setup.js
+!/mkdocs.yaml
+!/mockBackend.js
+!/package.json
+!/README.md
+!/tsconfig.json

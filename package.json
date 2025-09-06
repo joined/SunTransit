@@ -63,7 +63,9 @@
     "jest": {
         "preset": "ts-jest",
         "testEnvironment": "jsdom",
-        "setupFilesAfterEnv": ["<rootDir>/frontend/jest.setup.js"]
+        "setupFilesAfterEnv": [
+            "<rootDir>/frontend/jest.setup.js"
+        ]
     },
     "targets": {
         "default": {

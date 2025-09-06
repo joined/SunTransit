@@ -30,7 +30,7 @@ describe('LineIcon Component', () => {
         const { container } = render(<LineIcon name="M10" type="tram" disabled />);
         const rect = container.querySelector('rect');
         const text = container.querySelector('text');
-        
+
         expect(rect).toHaveStyle('opacity: 0.3');
         expect(text).toHaveStyle('opacity: 0.3');
     });

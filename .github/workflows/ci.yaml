@@ -30,13 +30,18 @@ jobs:
     cpp_format:
         name: C++ Formatting Check
         runs-on: ubuntu-latest
-
+        strategy:
+          matrix:
+            path:
+              - 'esp'
+              - 'simulator'
         steps:
-            - uses: actions/checkout@v4
-            - name: Run clang-format style check for C/C++/Protobuf programs.
-              uses: jidicula/clang-format-action@v4.11.0
-              with:
-                  clang-format-version: '17'
+        - uses: actions/checkout@v4
+        - name: Run clang-format style check for C/C++/Protobuf programs.
+          uses: jidicula/clang-format-action@v4.15.0
+          with:
+            clang-format-version: '17'
+            check-path: ${{ matrix.path }}
 
     frontend_eslint:
         name: ESLint Frontend
@@ -147,3 +152,9 @@ jobs:
               run: |
                   cd simulator
                   pio run --verbose --environment emulator
+            - name: Archive build output artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: simulator
+                  path: .pio/build/emulator/program
+                  compression-level: 0

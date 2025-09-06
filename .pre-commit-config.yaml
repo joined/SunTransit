@@ -13,12 +13,6 @@ repos:
           - id: prettier-format
             name: Prettier formatting
             language: system
-            exclude_types:
-                - python
-                - image
-                - shell
-                - plain-text
-                - text
             entry: pnpm exec prettier --write
 
           - id: clang-format
