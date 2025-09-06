@@ -76,6 +76,25 @@ jobs:
                   pnpm i
                   pnpm lint:frontend:ts
 
+    frontend_tests:
+        name: Frontend Tests
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v3
+              with:
+                  version: latest
+            - name: Install node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20.10.0'
+                  cache: 'pnpm'
+            - name: Install frontend dependencies, run tests
+              run: |
+                  pnpm i
+                  pnpm test
+
     actionlint:
         name: Actionlint
         runs-on: ubuntu-latest
