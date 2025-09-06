@@ -76,14 +76,14 @@ const parseStationItem = ({ id, name, lines }: LocationsQueryResponseItem): Pars
         // Seems like some lines don't have an ID, filter them out
         R.filter((line) => !!line.id),
         // Seems like some lines are reported multiple times, the first one looks like the right one
-        R.uniqBy((line) => line.id),
+        R.uniqueBy((line) => line.id),
         R.map((line) => ({
             name: line.name,
             // Regional trains are sometimes reported as buses
             product: line.id.startsWith('r') ? 'regional' : line.product,
         })),
-        R.groupBy.strict((line) => line.product),
-        R.mapValues((lines) => (lines ? R.map(lines, (line) => line.name) : []))
+        R.groupBy((line) => line.product),
+        R.mapValues((lines) => R.map(lines, (line) => line.name))
     );
 
     return {
@@ -110,7 +110,7 @@ export default function StationChangeDialog({
             .then((response) => {
                 setOptions(response.data.map(parseStationItem));
             })
-            .catch((error) => {
+            .catch((error: unknown) => {
                 console.log('Error fetching locations', error);
             });
     };

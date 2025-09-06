@@ -175,7 +175,9 @@ const TaskTable = ({ data }: { data: Array<SysInfoTaskResponse> }) => (
             </TableHead>
             <TableBody>
                 {R.sortBy(data, (task) => -task.stack_high_water_mark).map((task) => (
-                    <TableRow key={`${task.name}-${task.core_id}`} css={lastTableRowStyle}>
+                    <TableRow
+                        key={`${task.name}-${task.core_id ? task.core_id.toString() : '?'}`}
+                        css={lastTableRowStyle}>
                         <TableCell
                             css={css`
                                 word-break: break-all;
@@ -226,7 +228,7 @@ export const SystemInformationTab = () => {
                             }}
                         />
                     }
-                    label={`Auto-refresh every ${Math.floor(SYS_INFO_REFRESH_INTERVAL / 1000)}s`}
+                    label={`Auto-refresh every ${Math.floor(SYS_INFO_REFRESH_INTERVAL / 1000).toString()}s`}
                 />
             </FormGroup>
             <Typography variant="h4" gutterBottom>

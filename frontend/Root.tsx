@@ -75,8 +75,8 @@ export const Root = () => {
                 <AppBar
                     position="fixed"
                     sx={{
-                        width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-                        ml: { sm: `${DRAWER_WIDTH}px` },
+                        width: { sm: `calc(100% - ${DRAWER_WIDTH.toString()}px)` },
+                        ml: { sm: `${DRAWER_WIDTH.toString()}px` },
                     }}>
                     <Toolbar>
                         <IconButton
@@ -124,7 +124,9 @@ export const Root = () => {
                         <NavigationDrawerContent />
                     </Drawer>
                 </Box>
-                <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` } }}>
+                <Box
+                    component="main"
+                    sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${DRAWER_WIDTH.toString()}px)` } }}>
                     <Toolbar />
                     <Outlet />
                 </Box>
