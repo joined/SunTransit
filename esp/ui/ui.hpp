@@ -60,12 +60,16 @@ class DeparturesScreen : public Screen {
                           const std::optional<std::chrono::seconds> &time_to_departure);
     void addTextItem(const std::string &text);
     void clean();
+    void updateLastUpdatedTime();
+    void refreshLastUpdatedDisplay();
 
   private:
     lv_obj_t *line = nullptr;
     lv_obj_t *direction = nullptr;
     lv_obj_t *departure = nullptr;
     lv_obj_t *panel = nullptr;
+    lv_obj_t *last_updated_label = nullptr;
+    std::chrono::system_clock::time_point last_updated_time;
 };
 
 inline SplashScreen splash_screen;

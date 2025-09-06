@@ -18,6 +18,7 @@ static char http_client_buffer[HTTP_CLIENT_BUFFER_SIZE];
 
 const std::vector<std::string> ALL_PRODUCTS = {"suburban", "subway", "tram", "bus", "ferry", "express", "regional"};
 
+// TODO Remove unused `stationId`
 BvgApiClient::BvgApiClient(const std::string &stationId) {
     esp_http_client_config_t config = {
         .url = "https://www.google.com", // Set later

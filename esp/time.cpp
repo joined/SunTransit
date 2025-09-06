@@ -56,19 +56,38 @@ iSO8601StringToTimePoint(const std::string &iso8601) {
     std::tm t = {};
     // F: Equivalent to %Y-%m-%d, the ISO 8601 date format.
     // T: ISO 8601 time format (HH:MM:SS), equivalent to %H:%M:%S
-    // TODO We should handle the timezone here, but the `%z` specifier is not supported by newlib. For now we just
-    // always assume same as local time.
     auto result = strptime(iso8601.c_str(), "%FT%T", &t);
     if (result == nullptr) {
         ESP_LOGE(TAG, "Failed to parse ISO8601 string: %s", iso8601.c_str());
         return std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>();
     }
 
+    // The BVG API returns times in Berlin local time (CET/CEST).
+    // We need to interpret the parsed time as already being in the correct local timezone,
+    // without applying any additional timezone conversion.
+    // Since mktime() applies local timezone conversion, we need to compensate for it.
+
+    // Get the current timezone offset to compensate for mktime's conversion
+    auto now = time(nullptr);
+    auto local_tm = *localtime(&now);
+    auto utc_tm = *gmtime(&now);
+
+    // Calculate timezone offset in seconds (local - UTC)
+    auto local_time = mktime(&local_tm);
+    auto utc_time = mktime(&utc_tm);
+    auto tz_offset = local_time - utc_time;
+
+    // Use mktime to get the timestamp, then subtract the timezone offset
+    // to get the actual time as intended by the BVG API
     auto time = mktime(&t);
     if (time == -1) {
         ESP_LOGE(TAG, "Failed to convert std::tm to std::time_t");
         return std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>();
     }
+
+    // Subtract the timezone offset to get the correct time
+    time -= tz_offset;
+
     return std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>(std::chrono::seconds(time));
 }
 } // namespace Time

@@ -64,7 +64,7 @@ const KEY_TO_LABEL: Record<string, string> = {
     compile_time: 'Compile time',
     compile_date: 'Compile date',
     free_heap: 'Free heap',
-    minimum_free_heap: 'Minimum free heap',
+    minimum_free_heap: 'Minimum free heap since boot',
     mac_address: 'MAC address',
     chip_model: 'Chip model',
 };

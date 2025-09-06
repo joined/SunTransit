@@ -192,6 +192,7 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
 
             departures_screen.addDepartureItem(trip.lineName, trip.directionName, timeToDeparture);
         }
+        departures_screen.updateLastUpdatedTime();
     }
     ESP_LOGD(TAG, "Done processing trips");
 }
@@ -221,6 +222,13 @@ const esp_timer_create_args_t departuresRefresherTimerArgs = {
 };
 
 esp_timer_handle_t departuresRefreshTimerHandle = nullptr;
+
+const esp_timer_create_args_t lastUpdatedRefreshTimerArgs = {
+    .callback = [](void *arg) { departures_screen.refreshLastUpdatedDisplay(); },
+    .name = "lastUpdatedRefreshTimer",
+};
+
+esp_timer_handle_t lastUpdatedRefreshTimerHandle = nullptr;
 
 extern "C" void app_main(void) {
     printHealthStats("app_main start");
@@ -282,6 +290,11 @@ extern "C" void app_main(void) {
     ESP_ERROR_CHECK(esp_timer_create(&departuresRefresherTimerArgs, &departuresRefreshTimerHandle));
     ESP_ERROR_CHECK(
         esp_timer_start_periodic(departuresRefreshTimerHandle, duration_cast<std::chrono::microseconds>(5s).count()));
+
+    // Start timer to refresh "last updated" display every 1 second
+    ESP_ERROR_CHECK(esp_timer_create(&lastUpdatedRefreshTimerArgs, &lastUpdatedRefreshTimerHandle));
+    ESP_ERROR_CHECK(
+        esp_timer_start_periodic(lastUpdatedRefreshTimerHandle, duration_cast<std::chrono::microseconds>(1s).count()));
 
     printHealthStats("end of app_main");
 };

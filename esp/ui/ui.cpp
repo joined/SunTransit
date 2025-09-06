@@ -191,6 +191,14 @@ void DeparturesScreen::init() {
     panel = createPanel(LV_SCROLL_SNAP_START);
     lv_obj_set_style_bg_color(panel, Color::yellow, DEFAULT_SELECTOR);
     lv_obj_set_style_bg_opa(panel, 51, DEFAULT_SELECTOR);
+
+    // Add last updated label at the bottom
+    last_updated_label = lv_label_create(screen);
+    lv_obj_set_x(last_updated_label, 9);
+    lv_obj_set_y(last_updated_label, 295); // Near bottom of 320px screen
+    lv_label_set_text(last_updated_label, "Last updated: --");
+    lv_obj_set_style_text_color(last_updated_label, Color::white, DEFAULT_SELECTOR);
+    lv_obj_set_style_text_font(last_updated_label, &montserrat_regular_16, DEFAULT_SELECTOR);
 };
 
 void DeparturesScreen::addRandomDepartureItem() {
@@ -245,6 +253,40 @@ void DeparturesScreen::clean() {
     const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
     lv_obj_clean(panel);
 };
+
+void DeparturesScreen::updateLastUpdatedTime() {
+    if (last_updated_label == nullptr) {
+        return;
+    }
+
+    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    last_updated_time = std::chrono::system_clock::now();
+    lv_label_set_text(last_updated_label, "Last updated: 0s ago");
+}
+
+void DeparturesScreen::refreshLastUpdatedDisplay() {
+    if (last_updated_label == nullptr || last_updated_time.time_since_epoch().count() == 0) {
+        return;
+    }
+
+    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    auto now = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - last_updated_time);
+    auto seconds = duration.count();
+
+    std::string text;
+    if (seconds < 60) {
+        text = "Last updated: " + std::to_string(seconds) + "s ago";
+    } else if (seconds < 3600) {
+        auto minutes = seconds / 60;
+        text = "Last updated: " + std::to_string(minutes) + "m ago";
+    } else {
+        auto hours = seconds / 3600;
+        text = "Last updated: " + std::to_string(hours) + "h ago";
+    }
+
+    lv_label_set_text(last_updated_label, text.c_str());
+}
 
 void UIManager::init() {
     // TODO Make use of the theme, allow switching between themes
