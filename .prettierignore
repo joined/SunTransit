@@ -1,9 +1,9 @@
 /*
 !/docs/*.md
+!/eslint.config.mjs
 !/frontend/
 !/jest.setup.js
 !/mkdocs.yaml
 !/mockBackend.js
-!/package.json
 !/README.md
 !/tsconfig.json
