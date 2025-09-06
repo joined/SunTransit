@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { RouteConfig } from './Types';
 import { DRAWER_WIDTH } from './util/Constants';
 
@@ -54,7 +54,7 @@ const NavigationDrawerContent = ({ onNavigation }: { onNavigation?: VoidFunction
                         selected={pathname === route.path}
                         onClick={() => {
                             onNavigation?.();
-                            navigate(route.path);
+                            void navigate(route.path);
                         }}>
                         <ListItemIcon>{route.drawerIcon}</ListItemIcon>
                         <ListItemText primary={route.name} />

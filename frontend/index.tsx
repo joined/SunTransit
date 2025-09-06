@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router';
 import { Root } from './Root';
 import { HomeTab } from './tabs/HomeTab/HomeTab';
 import { SystemInformationTab } from './tabs/SystemInformationTab/SystemInformationTab';
