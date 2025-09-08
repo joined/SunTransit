@@ -13,26 +13,10 @@
 
 namespace LVGL_SDL {
 
-void sdl_log_callback(const char *buffer) { SDL_Log("%s", buffer); }
-
-static int timer_thread(void *data) {
-    SDL_Log("Starting timer thread\n");
-    while (true) {
-        {
-            const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
-            lv_timer_handler();
-        }
-        SDL_Delay(5);
-    }
-
-    return 0;
-}
-
 static void init() {
     setvbuf(stdout, NULL, _IONBF, 0); // Disable stdout buffering, so that logs appear instantly
 
     lv_init();
-    lv_log_register_print_cb(sdl_log_callback);
 
     /* Add a display
      * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
@@ -59,7 +43,5 @@ static void init() {
     lv_indev_drv_register(&indev_drv);
 
     sdl_init();
-
-    SDL_CreateThread(timer_thread, "timer", NULL);
 }
 } // namespace LVGL_SDL

@@ -10,9 +10,7 @@ static const string AP_SSID = "esp32";
 static const string AP_PASSWORD = "whatever";
 static const string PROVISIONING_QR_CODE_DATA = "WIFI:S:" + AP_SSID + ";T:WPA;P:" + AP_PASSWORD + ";;";
 
-int main(void) {
-    LVGL_SDL::init();
-
+static int ui_thread(void *data) {
     UIManager::init();
 
     this_thread::sleep_for(2s);
@@ -36,9 +34,27 @@ int main(void) {
     departures_screen.clean();
     for (int i = 0; i < 20; i++) {
         departures_screen.addRandomDepartureItem();
+        this_thread::sleep_for(200ms);
     }
 
+    return 0;
+}
+
+int main(void) {
+    LVGL_SDL::init();
+
+    SDL_CreateThread(ui_thread, "ui", NULL);
+
+    // TODO We should probably call `SDL_PollEvent` here and quit on quit event but that seems
+    // to mess with LVGL somehow (mouse drag behaves weird).
+    // Apparently that might even be required on some OSes.
     while (true) {
-        this_thread::sleep_for(100ms);
+        {
+            const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+            // NOTE: `lv_timer_handler` must be called from the same thread that initialized LVGL/SDL
+            lv_timer_handler();
+        }
+
+        this_thread::sleep_for(5ms);
     }
 }
