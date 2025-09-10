@@ -61,15 +61,39 @@ class ProvisioningScreen : public Screen {
     lv_obj_t *panel = nullptr;
 };
 
+class DepartureItem {
+  public:
+    void create(lv_obj_t *parent, const std::string &line_text, const std::string &direction_text,
+                const std::string &time_text, const std::optional<std::chrono::seconds> &time_to_departure);
+    void update(const std::string &line_text, const std::string &direction_text, const std::string &time_text,
+                const std::optional<std::chrono::seconds> &time_to_departure);
+    void destroy();
+    bool isValid() const { return item != nullptr; }
+    lv_obj_t *getItem() const { return item; }
+    std::optional<std::chrono::seconds> getDepartureTime() const { return departure_time; }
+
+  private:
+    lv_obj_t *item = nullptr;
+    lv_obj_t *line = nullptr;
+    lv_obj_t *direction = nullptr;
+    lv_obj_t *time = nullptr;
+    std::optional<std::chrono::seconds> departure_time;
+};
+
 class DeparturesScreen : public Screen {
   public:
     void init();
-    void addDepartureItem(const std::string &line_text, const std::string &direction_text,
-                          const std::optional<std::chrono::seconds> &time_to_departure);
+    void updateDepartureItem(const std::string &trip_id, const std::string &line_text,
+                             const std::string &direction_text,
+                             const std::optional<std::chrono::seconds> &time_to_departure);
+    void removeDepartureItem(const std::string &trip_id);
     void addTextItem(const std::string &text);
     void clean();
+    void cleanDepartureItems();
     void updateLastUpdatedTime();
     void refreshLastUpdatedDisplay();
+    void reorderByDepartureTime();
+    const std::unordered_map<std::string, DepartureItem> &getDepartureItems() const { return departure_items; }
 
     void showLoadingMessage(const std::string &station_name);
     void showStationNotFoundError();
@@ -81,6 +105,7 @@ class DeparturesScreen : public Screen {
     lv_obj_t *panel = nullptr;
     lv_obj_t *last_updated_label = nullptr;
     std::chrono::system_clock::time_point last_updated_time;
+    std::unordered_map<std::string, DepartureItem> departure_items;
 };
 
 inline SplashScreen splash_screen;

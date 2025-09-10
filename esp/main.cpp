@@ -9,6 +9,7 @@
 #include <mdns.h>
 #include <sys/param.h>
 #include <thread>
+#include <unordered_set>
 #include <wifi_provisioning/manager.h>
 #include <wifi_provisioning/scheme_softap.h>
 
@@ -177,19 +178,36 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
     }
 
     {
-        // TODO Instead of cleaning the screen and then adding the items, we should just update the items
-        // Do a clean update of the screen by locking the mutex
+        // Update departures screen with tripId-based management for efficient updates
         const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
-        departures_screen.clean();
         const auto now = Time::timePointNow();
+
+        // Keep track of current tripIds to remove stale items
+        std::unordered_set<std::string> currentTripIds;
+
         for (auto trip : trips) {
+            currentTripIds.insert(trip.tripId);
             const auto timeToDeparture = trip.departureTime.has_value()
                                              ? std::make_optional(std::chrono::duration_cast<std::chrono::seconds>(
                                                    trip.departureTime.value() - now))
                                              : std::nullopt;
 
-            departures_screen.addDepartureItem(trip.lineName, trip.directionName, timeToDeparture);
+            departures_screen.updateDepartureItem(trip.tripId, trip.lineName, trip.directionName, timeToDeparture);
         }
+
+        // Remove items that are no longer in the current data
+        std::vector<std::string> itemsToRemove;
+        for (const auto &[tripId, item] : departures_screen.getDepartureItems()) {
+            if (currentTripIds.find(tripId) == currentTripIds.end()) {
+                itemsToRemove.push_back(tripId);
+            }
+        }
+        for (const auto &tripId : itemsToRemove) {
+            departures_screen.removeDepartureItem(tripId);
+        }
+
+        departures_screen.reorderByDepartureTime();
+
         departures_screen.updateLastUpdatedTime();
     }
     ESP_LOGD(TAG, "Done processing trips");

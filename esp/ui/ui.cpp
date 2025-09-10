@@ -1,4 +1,6 @@
 #include "ui.hpp"
+#include <algorithm>
+#include <vector>
 
 namespace Color {
 const lv_color_t black = lv_color_hex(0x000000);
@@ -123,51 +125,71 @@ void ProvisioningScreen::addQRCode(const std::string &data, const int size) {
     lv_obj_scroll_to_y(panel, LV_COORD_MAX, LV_ANIM_OFF);
 };
 
-class DepartureItem {
-  public:
-    void create(lv_obj_t *parent, const std::string &line_text, const std::string &direction_text,
-                const std::string &time_text) {
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
-        item = lv_obj_create(parent);
-        lv_obj_set_width(item, lv_pct(100));
-        lv_obj_set_height(item, LV_SIZE_CONTENT);
-        lv_obj_set_align(item, LV_ALIGN_TOP_LEFT);
-        lv_obj_set_style_bg_opa(item, 0, DEFAULT_SELECTOR);
-        lv_obj_set_style_border_width(item, 0, DEFAULT_SELECTOR);
-        lv_obj_set_style_pad_hor(item, 0, DEFAULT_SELECTOR);
-        lv_obj_set_style_pad_ver(item, 0, DEFAULT_SELECTOR);
-        lv_obj_set_style_text_color(item, Color::yellow, DEFAULT_SELECTOR);
-        lv_obj_set_style_text_font(item, &roboto_condensed_regular_28_4bpp, DEFAULT_SELECTOR);
+void DepartureItem::create(lv_obj_t *parent, const std::string &line_text, const std::string &direction_text,
+                           const std::string &time_text, const std::optional<std::chrono::seconds> &time_to_departure) {
+    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    departure_time = time_to_departure;
 
-        line = lv_label_create(item);
-        lv_obj_set_align(line, LV_ALIGN_LEFT_MID);
-        lv_label_set_text(line, line_text.c_str());
+    item = lv_obj_create(parent);
+    lv_obj_set_width(item, lv_pct(100));
+    lv_obj_set_height(item, LV_SIZE_CONTENT);
+    lv_obj_set_align(item, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_style_bg_opa(item, 0, DEFAULT_SELECTOR);
+    lv_obj_set_style_border_width(item, 0, DEFAULT_SELECTOR);
+    lv_obj_set_style_pad_hor(item, 0, DEFAULT_SELECTOR);
+    lv_obj_set_style_pad_ver(item, 0, DEFAULT_SELECTOR);
+    lv_obj_set_style_text_color(item, Color::yellow, DEFAULT_SELECTOR);
+    lv_obj_set_style_text_font(item, &roboto_condensed_regular_28_4bpp, DEFAULT_SELECTOR);
 
-        direction = lv_label_create(item);
-        lv_obj_set_height(direction,
-                          33); // ideally we'd specify "one line" here but we can't, the value is guessed visually
-        lv_obj_set_width(direction, 325);
-        lv_obj_set_x(direction, 65);
-        lv_obj_set_align(direction, LV_ALIGN_LEFT_MID);
-        // Only use the circular mode if the label is really long, otherwise it looks weird.
-        // TODO The `30` value is a guess (depends on the characters), we should do better.
-        // Maybe we can use `lv_txt_get_size`.
-        lv_label_set_long_mode(direction, direction_text.length() > 30 ? LV_LABEL_LONG_SCROLL : LV_LABEL_LONG_DOT);
-        lv_label_set_text(direction, direction_text.c_str());
-        lv_obj_set_style_text_font(direction, &roboto_condensed_light_28_4bpp, DEFAULT_SELECTOR);
+    line = lv_label_create(item);
+    lv_obj_set_align(line, LV_ALIGN_LEFT_MID);
+    lv_label_set_text(line, line_text.c_str());
 
-        time = lv_label_create(item);
-        lv_obj_set_align(time, LV_ALIGN_RIGHT_MID);
-        lv_obj_set_x(time, -8);
-        lv_label_set_text(time, time_text.c_str());
+    direction = lv_label_create(item);
+    lv_obj_set_height(direction,
+                      33); // ideally we'd specify "one line" here but we can't, the value is guessed visually
+    lv_obj_set_width(direction, 325);
+    lv_obj_set_x(direction, 65);
+    lv_obj_set_align(direction, LV_ALIGN_LEFT_MID);
+    // Only use the circular mode if the label is really long, otherwise it looks weird.
+    // TODO The `30` value is a guess (depends on the characters), we should do better.
+    // Maybe we can use `lv_txt_get_size`.
+    lv_label_set_long_mode(direction, direction_text.length() > 30 ? LV_LABEL_LONG_SCROLL : LV_LABEL_LONG_DOT);
+    lv_label_set_text(direction, direction_text.c_str());
+    lv_obj_set_style_text_font(direction, &roboto_condensed_light_28_4bpp, DEFAULT_SELECTOR);
+
+    time = lv_label_create(item);
+    lv_obj_set_align(time, LV_ALIGN_RIGHT_MID);
+    lv_obj_set_x(time, -8);
+    lv_label_set_text(time, time_text.c_str());
+}
+
+void DepartureItem::update(const std::string &line_text, const std::string &direction_text,
+                           const std::string &time_text, const std::optional<std::chrono::seconds> &time_to_departure) {
+    if (!isValid()) {
+        return;
     }
 
-  private:
-    lv_obj_t *item;
-    lv_obj_t *line;
-    lv_obj_t *direction;
-    lv_obj_t *time;
-};
+    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    departure_time = time_to_departure;
+    lv_label_set_text(line, line_text.c_str());
+    lv_label_set_text(direction, direction_text.c_str());
+    lv_label_set_long_mode(direction, direction_text.length() > 30 ? LV_LABEL_LONG_SCROLL : LV_LABEL_LONG_DOT);
+    lv_label_set_text(time, time_text.c_str());
+}
+
+void DepartureItem::destroy() {
+    if (!isValid()) {
+        return;
+    }
+
+    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    lv_obj_del(item);
+    item = nullptr;
+    line = nullptr;
+    direction = nullptr;
+    time = nullptr;
+}
 
 void DeparturesScreen::init() {
     const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
@@ -201,8 +223,9 @@ void DeparturesScreen::init() {
     lv_obj_set_style_text_font(last_updated_label, &montserrat_regular_16, DEFAULT_SELECTOR);
 };
 
-void DeparturesScreen::addDepartureItem(const std::string &line_text, const std::string &direction_text,
-                                        const std::optional<std::chrono::seconds> &time_to_departure) {
+void DeparturesScreen::updateDepartureItem(const std::string &trip_id, const std::string &line_text,
+                                           const std::string &direction_text,
+                                           const std::optional<std::chrono::seconds> &time_to_departure) {
     if (panel == nullptr) {
         return;
     }
@@ -216,9 +239,24 @@ void DeparturesScreen::addDepartureItem(const std::string &line_text, const std:
         time_text = "=";
     }
 
-    DepartureItem departureItem;
-    departureItem.create(panel, line_text, direction_text, time_text);
-};
+    auto it = departure_items.find(trip_id);
+    if (it != departure_items.end()) {
+        // Update existing item
+        it->second.update(line_text, direction_text, time_text, time_to_departure);
+    } else {
+        // Create new item
+        DepartureItem &item = departure_items[trip_id];
+        item.create(panel, line_text, direction_text, time_text, time_to_departure);
+    }
+}
+
+void DeparturesScreen::removeDepartureItem(const std::string &trip_id) {
+    auto it = departure_items.find(trip_id);
+    if (it != departure_items.end()) {
+        it->second.destroy();
+        departure_items.erase(it);
+    }
+}
 
 void DeparturesScreen::addTextItem(const std::string &text) {
     if (panel == nullptr) {
@@ -244,7 +282,15 @@ void DeparturesScreen::clean() {
 
     const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
     lv_obj_clean(panel);
+    departure_items.clear();
 };
+
+void DeparturesScreen::cleanDepartureItems() {
+    for (auto &pair : departure_items) {
+        pair.second.destroy();
+    }
+    departure_items.clear();
+}
 
 void DeparturesScreen::updateLastUpdatedTime() {
     if (last_updated_label == nullptr) {
@@ -278,6 +324,43 @@ void DeparturesScreen::refreshLastUpdatedDisplay() {
     }
 
     lv_label_set_text(last_updated_label, text.c_str());
+}
+
+void DeparturesScreen::reorderByDepartureTime() {
+    if (panel == nullptr || departure_items.empty()) {
+        return;
+    }
+
+    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+
+    // Create a vector of (trip_id, departure_time) pairs for sorting
+    std::vector<std::pair<std::string, std::optional<std::chrono::seconds>>> sorted_items;
+    for (const auto &[trip_id, item] : departure_items) {
+        sorted_items.emplace_back(trip_id, item.getDepartureTime());
+    }
+
+    // Sort by departure time (nullopt values go to the end)
+    std::sort(sorted_items.begin(), sorted_items.end(), [](const auto &a, const auto &b) {
+        if (!a.second && !b.second)
+            return false; // Both nullopt, maintain original order
+        if (!a.second)
+            return false; // a is nullopt, b comes first
+        if (!b.second)
+            return true;                            // b is nullopt, a comes first
+        return a.second.value() < b.second.value(); // Both have values, compare
+    });
+
+    // Reorder the LVGL objects by moving them to the correct positions
+    for (size_t i = 0; i < sorted_items.size(); ++i) {
+        const auto &trip_id = sorted_items[i].first;
+        auto it = departure_items.find(trip_id);
+        if (it != departure_items.end()) {
+            lv_obj_t *item_obj = it->second.getItem();
+            if (item_obj != nullptr) {
+                lv_obj_move_to_index(item_obj, i);
+            }
+        }
+    }
 }
 
 void UIManager::init() {
@@ -315,7 +398,7 @@ void DeparturesScreen::showLoadingMessage(const std::string &station_name) {
 }
 
 void DeparturesScreen::showStationNotFoundError() {
-    clean();
+    cleanDepartureItems();
     addTextItem("Station not found.");
     addTextItem("Please access http://suntransit.local/ to configure your station.");
 }

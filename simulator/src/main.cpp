@@ -76,7 +76,7 @@ static mt19937 gen(rd());
 
 static int timestamp_refresh_thread(void *data) {
     while (true) {
-        this_thread::sleep_for(1s);
+        this_thread::sleep_for(500ms);
         departures_screen.refreshLastUpdatedDisplay();
     }
     return 0;
@@ -123,32 +123,39 @@ static int ui_thread(void *data) {
     this_thread::sleep_for(500ms);
 
     departures_screen.clean();
-    departures_screen.updateLastUpdatedTime();
 
     // Start timestamp refresh thread
     SDL_CreateThread(timestamp_refresh_thread, "timestamp_refresh", NULL);
 
-    // Add realistic Berlin departures
+    // Generate batch of departures like ESP32 does
     uniform_int_distribution<> line_dist(0, BERLIN_LINES.size() - 1);
     uniform_int_distribution<> time_dist(0, 25);
+    uniform_int_distribution<> count_dist(8, 15);
 
-    for (int i = 0; i < 12; i++) {
-        const auto &line_data = BERLIN_LINES[line_dist(gen)];
-        auto departure_time = chrono::minutes(time_dist(gen));
+    auto generateAndUpdateDepartures = [&]() {
+        int count = count_dist(gen);
+        for (int i = 0; i < count; i++) {
+            const auto &line_data = BERLIN_LINES[line_dist(gen)];
+            auto departure_time = chrono::minutes(time_dist(gen));
 
-        // Occasionally add "Now" departures
-        if (i % 4 == 0) {
-            departure_time = chrono::minutes(0);
+            // Occasionally add "Now" departures
+            if (i % 4 == 0) {
+                departure_time = chrono::minutes(0);
+            }
+
+            string trip_id = "sim_trip_" + to_string(i);
+            departures_screen.updateDepartureItem(trip_id, line_data.line, line_data.direction, departure_time);
         }
+    };
 
-        departures_screen.addDepartureItem(line_data.line, line_data.direction, departure_time);
-        this_thread::sleep_for(300ms);
-    }
-
+    // Simulate periodic API refreshes (like ESP32 does every 5 seconds)
     while (true) {
-        this_thread::sleep_for(5s);
-
+        // Generate new batch of departures (simulating new API response)
+        generateAndUpdateDepartures();
+        departures_screen.reorderByDepartureTime();
         departures_screen.updateLastUpdatedTime();
+
+        this_thread::sleep_for(5s);
     }
 
     return 0;
