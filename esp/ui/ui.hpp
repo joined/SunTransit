@@ -5,6 +5,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 inline std::recursive_mutex lvgl_mutex;
 
@@ -37,12 +38,15 @@ class SplashScreen : public Screen {
     void showInitializingWiFi();
     void showStartingProvisioning();
     void showConnectingToWiFi();
+    void showConnectingToWiFiWithResetButton(void (*reset_callback)());
     void showConnectedSwitchingToMain();
 
   private:
     lv_obj_t *title = nullptr;
     lv_obj_t *status = nullptr;
     lv_obj_t *spinner = nullptr;
+    lv_obj_t *reset_button = nullptr;
+    void (*reset_callback_fn)() = nullptr;
 };
 
 class ProvisioningScreen : public Screen {

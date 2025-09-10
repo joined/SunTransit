@@ -16,6 +16,9 @@ static const string PROVISIONING_QR_CODE_DATA = "WIFI:S:" + AP_SSID + ";T:WPA;P:
 // Set this to false to simulate an already provisioned device
 static const bool SIMULATE_NOT_PROVISIONED = false;
 
+// Set this to true to simulate WiFi connection timeout (shows reset button)
+static const bool SIMULATE_WIFI_TIMEOUT = false;
+
 // Realistic Berlin transport data
 struct BerlinLine {
     string line;
@@ -74,6 +77,16 @@ static const vector<BerlinLine> BERLIN_LINES = {{"U1", "U Warschauer Str."},
 static random_device rd;
 static mt19937 gen(rd());
 
+static void mock_reset_wifi_and_reboot() {
+    printf("=== SIMULATOR: WiFi reset button clicked! ===\n");
+    printf("In real ESP32 this would:\n");
+    printf("1. Reset WiFi provisioning\n");
+    printf("2. Reboot the device\n");
+    printf("3. Start fresh provisioning process\n");
+    printf("=== SIMULATOR: Exiting to simulate reboot ===\n");
+    exit(0);
+}
+
 static int timestamp_refresh_thread(void *data) {
     while (true) {
         this_thread::sleep_for(500ms);
@@ -100,6 +113,22 @@ static int ui_thread(void *data) {
 
         provisioning_screen.showWiFiConnectedMessage();
         this_thread::sleep_for(2s);
+    } else if (SIMULATE_WIFI_TIMEOUT) {
+        splash_screen.showConnectingToWiFi();
+        printf("SIMULATOR: Simulating 20 second WiFi timeout...\n");
+        printf("SIMULATOR: Waiting 3 seconds then showing reset button (compressed time)\n");
+        this_thread::sleep_for(3s);
+
+        printf("SIMULATOR: WiFi timeout! Showing reset button\n");
+        splash_screen.showConnectingToWiFiWithResetButton(mock_reset_wifi_and_reboot);
+
+        printf("SIMULATOR: Click the reset button to test the reset flow\n");
+        printf("SIMULATOR: The program will exit when you click the button\n");
+
+        // Stay in this state indefinitely until user clicks reset button
+        while (true) {
+            this_thread::sleep_for(100ms);
+        }
     } else {
         splash_screen.showConnectingToWiFi();
         this_thread::sleep_for(1.5s);

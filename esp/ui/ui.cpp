@@ -382,7 +382,52 @@ void SplashScreen::showStartingProvisioning() { updateStatus("Starting provision
 
 void SplashScreen::showConnectingToWiFi() { updateStatus("Connecting to WiFi..."); }
 
-void SplashScreen::showConnectedSwitchingToMain() { updateStatus("Connected! Switching to departures screen..."); }
+void SplashScreen::showConnectingToWiFiWithResetButton(void (*reset_callback)()) {
+    updateStatus("Connection taking longer than expected...");
+    reset_callback_fn = reset_callback;
+
+    // Hide the spinner when showing the reset button
+    if (spinner != nullptr) {
+        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        lv_obj_add_flag(spinner, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if (reset_button == nullptr) {
+        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        reset_button = lv_btn_create(screen);
+        lv_obj_set_width(reset_button, 200);
+        lv_obj_set_height(reset_button, 40);
+        lv_obj_set_y(reset_button, -80);
+        lv_obj_set_align(reset_button, LV_ALIGN_BOTTOM_MID);
+        lv_obj_set_style_bg_color(reset_button, Color::white, DEFAULT_SELECTOR);
+
+        lv_obj_t *reset_label = lv_label_create(reset_button);
+        lv_label_set_text(reset_label, "Reset WiFi Settings");
+        lv_obj_set_style_text_color(reset_label, Color::black, DEFAULT_SELECTOR);
+        lv_obj_set_style_text_font(reset_label, &montserrat_regular_16, DEFAULT_SELECTOR);
+        lv_obj_center(reset_label);
+
+        lv_obj_add_event_cb(
+            reset_button,
+            [](lv_event_t *e) {
+                SplashScreen *splash = (SplashScreen *)lv_event_get_user_data(e);
+                if (splash->reset_callback_fn != nullptr) {
+                    splash->reset_callback_fn();
+                }
+            },
+            LV_EVENT_CLICKED, this);
+    }
+}
+
+void SplashScreen::showConnectedSwitchingToMain() {
+    updateStatus("Connected! Switching to departures screen...");
+
+    // Hide reset button if it was shown
+    if (reset_button != nullptr) {
+        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        lv_obj_add_flag(reset_button, LV_OBJ_FLAG_HIDDEN);
+    }
+}
 
 void ProvisioningScreen::showSetupInstructions() { addLine("It looks like you're trying to set up your device."); }
 

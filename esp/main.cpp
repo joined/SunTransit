@@ -2,6 +2,7 @@
 #include <esp_http_client.h>
 #include <esp_log.h>
 #include <esp_mac.h>
+#include <esp_system.h>
 #include <esp_timer.h>
 #include <esp_wifi.h>
 #include <freertos/event_groups.h>
@@ -30,6 +31,20 @@ static const char *TAG = "MAIN";
 #define PROV_MGR_MAX_RETRY_COUNT 3
 
 using namespace std::chrono_literals;
+
+void reset_wifi_and_reboot() {
+    ESP_LOGI(TAG, "WiFi reset requested by user");
+    ESP_LOGI(TAG, "Resetting WiFi provisioning and rebooting...");
+
+    // Reset WiFi provisioning
+    ESP_ERROR_CHECK(wifi_prov_mgr_reset_provisioning());
+
+    // Small delay to ensure the reset is processed
+    std::this_thread::sleep_for(1s);
+
+    // Reboot the device
+    esp_restart();
+}
 
 static void provisioning_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     static int retries;
@@ -93,6 +108,12 @@ static void provisioning_event_handler(void *arg, esp_event_base_t event_base, i
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         ESP_LOGI(TAG, "Connected with IP Address:" IPSTR, IP2STR(&event->ip_info.ip));
+
+        /* Stop the WiFi timeout timer if it's running */
+        if (wifi_timeout_timer && esp_timer_is_active(wifi_timeout_timer)) {
+            esp_timer_stop(wifi_timeout_timer);
+        }
+
         /* Signal main application to continue execution */
         xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_EVENT);
     }
@@ -246,6 +267,13 @@ const esp_timer_create_args_t lastUpdatedRefreshTimerArgs = {
 
 esp_timer_handle_t lastUpdatedRefreshTimerHandle = nullptr;
 
+static esp_timer_handle_t wifi_timeout_timer = nullptr;
+
+static void wifi_timeout_callback(void *arg) {
+    ESP_LOGW(TAG, "WiFi connection timeout after 20 seconds, showing reset button");
+    splash_screen.showConnectingToWiFiWithResetButton(reset_wifi_and_reboot);
+}
+
 extern "C" void app_main(void) {
     printHealthStats("app_main start");
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -284,8 +312,19 @@ extern "C" void app_main(void) {
         ESP_ERROR_CHECK(esp_wifi_start());
     }
 
+    if (provisioned) {
+        /* Start a 20-second timer to show reset button if WiFi doesn't connect */
+        const esp_timer_create_args_t wifi_timeout_timer_args = {
+            .callback = wifi_timeout_callback,
+            .name = "wifi_timeout_timer",
+        };
+        ESP_ERROR_CHECK(esp_timer_create(&wifi_timeout_timer_args, &wifi_timeout_timer));
+        ESP_ERROR_CHECK(
+            esp_timer_start_once(wifi_timeout_timer, duration_cast<std::chrono::microseconds>(20s).count()));
+    }
+
     /* Wait for Wi-Fi connection */
-    xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, true, true, portMAX_DELAY);
+    EventBits_t uxBits = xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, true, true, portMAX_DELAY);
 
     if (provisioned) {
         splash_screen.showConnectedSwitchingToMain();
