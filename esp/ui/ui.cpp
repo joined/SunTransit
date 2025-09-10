@@ -201,14 +201,6 @@ void DeparturesScreen::init() {
     lv_obj_set_style_text_font(last_updated_label, &montserrat_regular_16, DEFAULT_SELECTOR);
 };
 
-void DeparturesScreen::addRandomDepartureItem() {
-    if (rand() % 2 == 0) {
-        addDepartureItem("RE55", "Sonnenallee", std::chrono::minutes(123));
-    } else {
-        addDepartureItem("U7", "U Rathaus Spandau / Kreuzung Altstadt", std::chrono::minutes(0));
-    }
-};
-
 void DeparturesScreen::addDepartureItem(const std::string &line_text, const std::string &direction_text,
                                         const std::optional<std::chrono::seconds> &time_to_departure) {
     if (panel == nullptr) {
@@ -300,3 +292,30 @@ void UIManager::init() {
 
     splash_screen.switchTo();
 };
+
+void SplashScreen::showInitializingWiFi() { updateStatus("Initializing WiFi..."); }
+
+void SplashScreen::showStartingProvisioning() { updateStatus("Starting provisioning..."); }
+
+void SplashScreen::showConnectingToWiFi() { updateStatus("Connecting to WiFi..."); }
+
+void SplashScreen::showConnectedSwitchingToMain() { updateStatus("Connected! Switching to departures screen..."); }
+
+void ProvisioningScreen::showSetupInstructions() { addLine("It looks like you're trying to set up your device."); }
+
+void ProvisioningScreen::showWiFiConnectedMessage() { addLine("Connected to WiFi! Switching to departures board..."); }
+
+void ProvisioningScreen::showAppProvisioningInstructions() {
+    addLine("Please download the \"ESP SoftAP Provisioning\" app from the App Store or Google Play, "
+            "open it and follow the instructions.");
+}
+
+void DeparturesScreen::showLoadingMessage(const std::string &station_name) {
+    addTextItem("Loading departures for " + station_name + "...");
+}
+
+void DeparturesScreen::showStationNotFoundError() {
+    clean();
+    addTextItem("Station not found.");
+    addTextItem("Please access http://suntransit.local/ to configure your station.");
+}

@@ -34,6 +34,11 @@ class SplashScreen : public Screen {
     void init();
     void updateStatus(const std::string &message);
 
+    void showInitializingWiFi();
+    void showStartingProvisioning();
+    void showConnectingToWiFi();
+    void showConnectedSwitchingToMain();
+
   private:
     lv_obj_t *title = nullptr;
     lv_obj_t *status = nullptr;
@@ -46,6 +51,10 @@ class ProvisioningScreen : public Screen {
     void addLine(const std::string &message);
     void addQRCode(const std::string &data, const int size = 120);
 
+    void showSetupInstructions();
+    void showWiFiConnectedMessage();
+    void showAppProvisioningInstructions();
+
   private:
     static const int MAX_LINES = 100;
     lv_obj_t *heading = nullptr;
@@ -55,13 +64,15 @@ class ProvisioningScreen : public Screen {
 class DeparturesScreen : public Screen {
   public:
     void init();
-    void addRandomDepartureItem();
     void addDepartureItem(const std::string &line_text, const std::string &direction_text,
                           const std::optional<std::chrono::seconds> &time_to_departure);
     void addTextItem(const std::string &text);
     void clean();
     void updateLastUpdatedTime();
     void refreshLastUpdatedDisplay();
+
+    void showLoadingMessage(const std::string &station_name);
+    void showStationNotFoundError();
 
   private:
     lv_obj_t *line = nullptr;

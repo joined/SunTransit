@@ -159,9 +159,7 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
         ESP_LOGE(TAG, "Failed to read current station from NVS");
         const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
         // TODO Do not repeat this all the time, save the status and update the screen only on change
-        departures_screen.clean();
-        departures_screen.addTextItem("Station not found.");
-        departures_screen.addTextItem("Please access http://suntransit.local/ to configure your station.");
+        departures_screen.showStationNotFoundError();
         return;
     }
 
@@ -253,14 +251,12 @@ extern "C" void app_main(void) {
         std::string service_name = getProvisioningSSID();
         ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(WIFI_PROV_SECURITY_0, nullptr, service_name.c_str(), nullptr));
         provisioning_screen.switchTo();
-        provisioning_screen.addLine("It looks like you're trying to set up your device.");
-        provisioning_screen.addLine(
-            "Please download the \"ESP SoftAP Provisioning\" app from the App Store or Google Play, "
-            "open it and follow the instructions.");
+        provisioning_screen.showSetupInstructions();
+        provisioning_screen.showAppProvisioningInstructions();
         wifi_prov_print_qr(service_name.c_str());
     } else {
         ESP_LOGI(TAG, "Already provisioned, starting Wi-Fi STA");
-        splash_screen.updateStatus("Connecting to WiFi...");
+        splash_screen.showConnectingToWiFi();
 
         /* We don't need the manager as device is already provisioned, so let's release it's resources */
         wifi_prov_mgr_deinit();
@@ -274,9 +270,9 @@ extern "C" void app_main(void) {
     xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, true, true, portMAX_DELAY);
 
     if (provisioned) {
-        splash_screen.updateStatus("Connected! Switching to departures screen...");
+        splash_screen.showConnectedSwitchingToMain();
     } else {
-        provisioning_screen.addLine("Connected to WiFi! Switching to departures board...");
+        provisioning_screen.showWiFiConnectedMessage();
     }
 
     std::this_thread::sleep_for(2s);
