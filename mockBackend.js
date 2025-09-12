@@ -2,8 +2,11 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-let currentStation = null;
-const ENABLE_FAILURES = true;
+let settings = {
+    minDepartureMinutes: 0,
+    currentStation: null,
+};
+const ENABLE_FAILURES = false;
 const FAILURE_RATE = 0.2;
 
 app.use(express.json());
@@ -49,20 +52,21 @@ app.get('/sysinfo', (req, res) => {
     );
 });
 
-app.get('/currentstation', (req, res) => {
+app.get('/settings', (req, res) => {
     if (ENABLE_FAILURES && Math.random() < FAILURE_RATE) {
         res.status(500).send();
     } else {
-        res.send(JSON.stringify(currentStation));
+        res.send(JSON.stringify(settings));
     }
 });
 
-app.post('/currentstation', (req, res) => {
+app.post('/settings', (req, res) => {
     if (ENABLE_FAILURES && Math.random() < FAILURE_RATE) {
         res.status(500).send();
     } else {
-        currentStation = req.body;
-        res.send();
+        settings = { ...settings, ...req.body };
+        console.log('Updated settings:', JSON.stringify(settings, null, 2));
+        res.send({});
     }
 });
 

@@ -1,4 +1,4 @@
-import { LineProductType, ParsedStation } from '../Types';
+import { SettingsUpdateRequest } from '../Types';
 
 export interface LocationsQueryRequestQuerySchema {
     query: string;
@@ -12,6 +12,4 @@ export interface LocationsQueryRequestQuerySchema {
     [key: string]: string | boolean | number | undefined;
 }
 
-export interface CurrentStationPostRequestSchema extends ParsedStation {
-    enabledProducts: Array<LineProductType>;
-}
+export type SettingsPostRequestSchema = SettingsUpdateRequest;

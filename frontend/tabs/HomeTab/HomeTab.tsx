@@ -1,11 +1,12 @@
-import { CircularProgress, Typography, Stack, Button, Snackbar, Alert, Box } from '@mui/material';
+import { CircularProgress, Typography, Stack, Button, Snackbar, Alert, Box, TextField, Paper } from '@mui/material';
 import { AxiosError } from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
-import { CurrentStationPostRequestSchema } from '../../api/Requests';
-import { CurrentStationGetResponse } from '../../api/Responses';
+import { SettingsPostRequestSchema } from '../../api/Requests';
+import { SettingsGetResponse } from '../../api/Responses';
+import { Settings } from '../../Types';
 import { getRequestSender, postRequestSender } from '../../util/Ajax';
 import ServicesSection from './ServicesSection';
 import StationChangeDialog from './StationChangeDialog';
@@ -31,26 +32,81 @@ function InitialConfiguration({ onButtonClick, disabled }: InitialConfigurationP
 
 export function HomeTab() {
     const {
-        data: currentStationResponse,
-        error,
-        isLoading,
-        isValidating,
-    } = useSWR<CurrentStationGetResponse, AxiosError>('/api/currentstation', getRequestSender);
-    const { trigger, isMutating } = useSWRMutation(
-        '/api/currentstation',
-        postRequestSender<CurrentStationPostRequestSchema>,
+        data: settingsResponse,
+        error: settingsError,
+        isLoading: isSettingsLoading,
+        isValidating: isSettingsValidating,
+    } = useSWR<SettingsGetResponse, AxiosError>('/api/settings', getRequestSender);
+    const { trigger: triggerSettings, isMutating: isSettingsMutating } = useSWRMutation(
+        '/api/settings',
+        postRequestSender<SettingsPostRequestSchema>,
         { revalidate: false }
     );
 
     const [isStationChangeDialogOpen, setStationChangeDialogOpen] = useState(false);
+    const [minDepartureMinutes, setMinDepartureMinutes] = useState<number>(0);
     const { state: snackbarState, openWithMessage: openSnackbarWithMessage, close: closeSnackbar } = useSnackbarState();
 
-    if (isLoading) {
+    // Sync local state with settings response
+    useEffect(() => {
+        if (settingsResponse) {
+            setMinDepartureMinutes(settingsResponse.minDepartureMinutes);
+        }
+    }, [settingsResponse]);
+
+    const handleSaveSettings = () => {
+        void triggerSettings(
+            {
+                minDepartureMinutes,
+            },
+            {
+                onSuccess: () => {
+                    openSnackbarWithMessage('Settings saved successfully', 'success');
+                },
+                onError: () => {
+                    openSnackbarWithMessage('Error saving settings, please try again', 'error');
+                },
+                optimisticData: settingsResponse
+                    ? {
+                          ...settingsResponse,
+                          minDepartureMinutes,
+                      }
+                    : undefined,
+            }
+        );
+    };
+
+    const handleSaveCurrentStation = (newCurrentStation: NonNullable<Settings['currentStation']>) => {
+        void triggerSettings(
+            {
+                currentStation: newCurrentStation,
+                minDepartureMinutes: 0, // Reset filter when station changes
+            },
+            {
+                onSuccess: () => {
+                    openSnackbarWithMessage('Station changed successfully', 'success');
+                    setMinDepartureMinutes(0); // Update local state
+                },
+                onError: () => {
+                    openSnackbarWithMessage('Error, please try again', 'error');
+                },
+                optimisticData: settingsResponse
+                    ? {
+                          ...settingsResponse,
+                          currentStation: newCurrentStation,
+                          minDepartureMinutes: 0,
+                      }
+                    : undefined,
+            }
+        );
+    };
+
+    if (isSettingsLoading) {
         return <CircularProgress color="secondary" />;
     }
 
-    if (error) {
-        return <p>Error loading station information.</p>;
+    if (settingsError) {
+        return <p>Error loading settings.</p>;
     }
 
     return (
@@ -58,9 +114,9 @@ export function HomeTab() {
             <Typography variant="h3" gutterBottom>
                 Departures panel configuration
             </Typography>
-            {!currentStationResponse ? (
+            {!settingsResponse?.currentStation ? (
                 <InitialConfiguration
-                    disabled={isValidating}
+                    disabled={isSettingsValidating}
                     onButtonClick={() => {
                         setStationChangeDialogOpen(true);
                     }}
@@ -76,11 +132,11 @@ export function HomeTab() {
                         <Stack direction={{ xs: 'column', md: 'row' }} gap={1}>
                             <Box>Currently selected station:</Box>
                             <Box sx={{ fontWeight: 'bold' }} display="inline">
-                                {currentStationResponse.name}
+                                {settingsResponse.currentStation.name}
                             </Box>
                         </Stack>
                         <Button
-                            disabled={isValidating || isMutating}
+                            disabled={isSettingsValidating || isSettingsMutating}
                             sx={{ width: { xs: 100, sm: 'auto' } }}
                             variant="contained"
                             onClick={() => {
@@ -90,42 +146,59 @@ export function HomeTab() {
                         </Button>
                     </Stack>
                     <ServicesSection
-                        currentStation={currentStationResponse}
-                        saveNewCurrentStation={(newCurrentStation) => {
-                            void trigger(newCurrentStation, {
-                                onSuccess: () => {
-                                    openSnackbarWithMessage('Saved', 'success');
-                                },
-                                onError: () => {
-                                    openSnackbarWithMessage('Error, please try again', 'error');
-                                },
-                                optimisticData: newCurrentStation,
-                            });
-                        }}
-                        disableToggles={isMutating || isValidating}
+                        currentStation={settingsResponse.currentStation}
+                        saveNewCurrentStation={handleSaveCurrentStation}
+                        disableToggles={isSettingsMutating || isSettingsValidating}
                     />
+
+                    <Paper sx={{ p: 3, mt: 3 }}>
+                        <Typography variant="h5" gutterBottom>
+                            Departure Filter Settings
+                        </Typography>
+                        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                            Configure the minimum time before departure to show connections. For example, if you set
+                            this to 5 minutes, departures leaving in less than 5 minutes will be hidden.
+                        </Typography>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
+                            <TextField
+                                label="Hide departures leaving in less than (minutes)"
+                                type="number"
+                                value={minDepartureMinutes}
+                                onChange={(e) => {
+                                    setMinDepartureMinutes(Math.max(0, Math.min(30, parseInt(e.target.value) || 0)));
+                                }}
+                                inputProps={{
+                                    min: 0,
+                                    max: 30,
+                                    step: 1,
+                                }}
+                                sx={{ minWidth: { xs: '100%', sm: 300 } }}
+                                disabled={isSettingsMutating || isSettingsValidating}
+                                size="small"
+                            />
+                            <Button
+                                variant="contained"
+                                onClick={handleSaveSettings}
+                                disabled={isSettingsMutating || isSettingsValidating}
+                                sx={{ minWidth: 100 }}>
+                                Save
+                            </Button>
+                        </Stack>
+                    </Paper>
                 </Box>
             )}
             <StationChangeDialog
-                currentStationId={currentStationResponse?.id ?? null}
+                currentStationId={settingsResponse?.currentStation?.id ?? null}
                 open={isStationChangeDialogOpen}
                 saveNewCurrentStation={(newCurrentStation, onSuccess) => {
-                    void trigger(newCurrentStation, {
-                        onSuccess: () => {
-                            openSnackbarWithMessage('Station changed successfully', 'success');
-                            onSuccess();
-                            setStationChangeDialogOpen(false);
-                        },
-                        onError: () => {
-                            openSnackbarWithMessage('Error, please try again', 'error');
-                        },
-                        optimisticData: newCurrentStation,
-                    });
+                    handleSaveCurrentStation(newCurrentStation);
+                    onSuccess();
+                    setStationChangeDialogOpen(false);
                 }}
                 onClose={() => {
                     setStationChangeDialogOpen(false);
                 }}
-                isMutating={isMutating}
+                isMutating={isSettingsMutating}
             />
             <Snackbar open={snackbarState.open} autoHideDuration={3000} onClose={closeSnackbar}>
                 <Alert severity={snackbarState.severity} variant="filled">

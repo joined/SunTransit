@@ -176,15 +176,26 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
     ESP_LOGD(TAG, "Fetching trips...");
     NVSEngine nvs_engine("suntransit");
 
-    JsonDocument currentStationDoc;
-    auto err = nvs_engine.readCurrentStation(&currentStationDoc);
+    JsonDocument settingsDoc;
+    auto err = nvs_engine.readSettings(&settingsDoc);
     if (err) {
-        ESP_LOGE(TAG, "Failed to read current station from NVS");
+        ESP_LOGE(TAG, "Failed to read settings from NVS");
         const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
-        // TODO Do not repeat this all the time, save the status and update the screen only on change
         departures_screen.showStationNotFoundError();
         return;
     }
+
+    if (settingsDoc["currentStation"].isNull()) {
+        ESP_LOGD(TAG, "No current station configured");
+        // TODO Do not repeat this all the time, save the status and update the screen only on change
+        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        departures_screen.showStationNotFoundError();
+        return;
+    }
+
+    auto currentStationDoc = settingsDoc["currentStation"];
+    int minDepartureMinutes = settingsDoc["minDepartureMinutes"];
+    ESP_LOGD(TAG, "Minimum departure minutes filter: %d", minDepartureMinutes);
 
     auto enabledProductsJsonArray = currentStationDoc["enabledProducts"].as<JsonArrayConst>();
     std::vector<std::string> enabledProducts;
@@ -208,12 +219,21 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
         std::unordered_set<std::string> currentTripIds;
 
         for (auto trip : trips) {
-            currentTripIds.insert(trip.tripId);
             const auto timeToDeparture = trip.departureTime.has_value()
                                              ? std::make_optional(std::chrono::duration_cast<std::chrono::seconds>(
                                                    trip.departureTime.value() - now))
                                              : std::nullopt;
 
+            if (timeToDeparture.has_value() && minDepartureMinutes > 0) {
+                const auto minDepartureSeconds = std::chrono::seconds(minDepartureMinutes * 60);
+                if (timeToDeparture.value() < minDepartureSeconds) {
+                    ESP_LOGD(TAG, "Filtering out trip %s (departure in %ld seconds, minimum is %ld seconds)",
+                             trip.tripId.c_str(), timeToDeparture.value().count(), minDepartureSeconds.count());
+                    continue;
+                }
+            }
+
+            currentTripIds.insert(trip.tripId);
             departures_screen.updateDepartureItem(trip.tripId, trip.lineName, trip.directionName, timeToDeparture);
         }
 

@@ -10,7 +10,8 @@ class NVSEngine {
     static void init();
     esp_err_t readString(const std::string &key, std::string *result);
     esp_err_t setString(const std::string &key, const std::string &value);
-    esp_err_t readCurrentStation(JsonDocument *doc);
+    esp_err_t readSettings(JsonDocument *doc);
+    esp_err_t setSettings(const JsonDocument &doc);
 
   private:
     nvs_handle_t handle;

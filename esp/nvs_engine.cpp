@@ -37,28 +37,6 @@ esp_err_t NVSEngine::readString(const std::string &key, std::string *result) {
     return ESP_OK;
 };
 
-esp_err_t NVSEngine::readCurrentStation(JsonDocument *doc) {
-    std::string currentStation;
-    auto err = this->readString("current_station", &currentStation);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to read current station from NVS");
-        return err;
-    }
-
-    JsonDocument currentStationIdFilter;
-    currentStationIdFilter["id"] = true;
-    currentStationIdFilter["enabledProducts"] = true;
-
-    auto deserializationError =
-        deserializeJson(*doc, currentStation, DeserializationOption::Filter(currentStationIdFilter));
-    if (deserializationError) {
-        ESP_LOGE(TAG, "Failed to parse JSON: %s", deserializationError.c_str());
-        return ESP_FAIL;
-    }
-
-    return ESP_OK;
-};
-
 esp_err_t NVSEngine::setString(const std::string &key, const std::string &value) {
     auto err = nvs_set_str(this->handle, key.c_str(), value.c_str());
     if (err) {
@@ -66,4 +44,31 @@ esp_err_t NVSEngine::setString(const std::string &key, const std::string &value)
     }
     err = nvs_commit(this->handle);
     return err;
+};
+
+esp_err_t NVSEngine::readSettings(JsonDocument *doc) {
+    std::string settings;
+    auto err = this->readString("settings", &settings);
+    if (err != ESP_OK) {
+        // Initialize default settings
+        (*doc)["minDepartureMinutes"] = 0;
+        (*doc)["currentStation"] = nullptr;
+    } else {
+        auto deserializationError = deserializeJson(*doc, settings);
+        if (deserializationError) {
+            ESP_LOGE(TAG, "Failed to parse settings JSON: %s", deserializationError.c_str());
+            // Return default settings if parsing fails
+            (*doc)["minDepartureMinutes"] = 0;
+            (*doc)["currentStation"] = nullptr;
+            return ESP_OK;
+        }
+    }
+
+    return ESP_OK;
+};
+
+esp_err_t NVSEngine::setSettings(const JsonDocument &doc) {
+    std::string settings;
+    serializeJson(doc, settings);
+    return this->setString("settings", settings);
 };

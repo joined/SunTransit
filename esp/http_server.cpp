@@ -216,21 +216,28 @@ static esp_err_t api_get_sysinfo_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-static esp_err_t api_get_current_station_handler(httpd_req_t *req) {
+static esp_err_t api_get_settings_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/json");
-    std::string current_station;
+
     NVSEngine nvs_engine("suntransit");
-    auto err = nvs_engine.readString("current_station", &current_station);
+    JsonDocument settings_doc;
+    auto err = nvs_engine.readSettings(&settings_doc);
     if (err != ESP_OK) {
-        httpd_resp_sendstr(req, "null");
-        return ESP_OK;
-    } else {
-        httpd_resp_sendstr(req, current_station.c_str());
-        return ESP_OK;
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to read settings");
+        return ESP_FAIL;
     }
+
+    char buffer[512];
+    const auto bytesWritten = serializeJson(settings_doc, buffer);
+    if (bytesWritten == 0) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to serialize settings JSON");
+        return ESP_FAIL;
+    }
+    httpd_resp_send(req, buffer, bytesWritten);
+    return ESP_OK;
 }
 
-static esp_err_t api_set_current_station_handler(httpd_req_t *req) {
+static esp_err_t api_set_settings_handler(httpd_req_t *req) {
     char content[2048];
     size_t recv_size = std::min(req->content_len, sizeof(content));
     int ret = httpd_req_recv(req, content, recv_size);
@@ -246,10 +253,53 @@ static esp_err_t api_set_current_station_handler(httpd_req_t *req) {
          * ensure that the underlying socket is closed */
         return ESP_FAIL;
     }
+
+    JsonDocument settings_doc;
+    auto deserializationError = deserializeJson(settings_doc, content, recv_size);
+    if (deserializationError) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+        return ESP_FAIL;
+    }
+
     NVSEngine nvs_engine("suntransit");
-    auto err = nvs_engine.setString("current_station", std::string(content, recv_size));
+    JsonDocument currentSettings;
+    auto readErr = nvs_engine.readSettings(&currentSettings);
+    if (readErr != ESP_OK) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to read current settings");
+        return ESP_FAIL;
+    }
+
+    if (settings_doc.containsKey("minDepartureMinutes")) {
+        if (!settings_doc["minDepartureMinutes"].is<int>()) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "minDepartureMinutes must be a number");
+            return ESP_FAIL;
+        }
+        int minDepartureMinutes = settings_doc["minDepartureMinutes"];
+        if (minDepartureMinutes < 0 || minDepartureMinutes > 30) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "minDepartureMinutes must be between 0 and 30");
+            return ESP_FAIL;
+        }
+        currentSettings["minDepartureMinutes"] = minDepartureMinutes;
+    }
+
+    // Validate and update currentStation if provided
+    if (settings_doc.containsKey("currentStation")) {
+        auto currentStation = settings_doc["currentStation"];
+        if (!currentStation.containsKey("id") || !currentStation["id"].is<const char *>()) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "currentStation.id is required and must be a string");
+            return ESP_FAIL;
+        }
+        if (!currentStation.containsKey("enabledProducts") || !currentStation["enabledProducts"].is<JsonArrayConst>()) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+                                "currentStation.enabledProducts is required and must be an array");
+            return ESP_FAIL;
+        }
+        currentSettings["currentStation"] = currentStation;
+    }
+
+    auto err = nvs_engine.setSettings(currentSettings);
     if (err != ESP_OK) {
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to set current station");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save settings");
         return ESP_FAIL;
     }
 
@@ -274,19 +324,19 @@ httpd_handle_t setup_http_server() {
     };
     httpd_register_uri_handler(server, &api_get_sysinfo_uri);
 
-    httpd_uri_t api_get_current_station_uri = {
-        .uri = "/api/currentstation",
+    httpd_uri_t api_get_settings_uri = {
+        .uri = "/api/settings",
         .method = HTTP_GET,
-        .handler = api_get_current_station_handler,
+        .handler = api_get_settings_handler,
     };
-    httpd_register_uri_handler(server, &api_get_current_station_uri);
+    httpd_register_uri_handler(server, &api_get_settings_uri);
 
-    httpd_uri_t api_set_current_station_uri = {
-        .uri = "/api/currentstation",
+    httpd_uri_t api_set_settings_uri = {
+        .uri = "/api/settings",
         .method = HTTP_POST,
-        .handler = api_set_current_station_handler,
+        .handler = api_set_settings_handler,
     };
-    httpd_register_uri_handler(server, &api_set_current_station_uri);
+    httpd_register_uri_handler(server, &api_set_settings_uri);
 
     /* URI handler for getting web server files */
     httpd_uri_t common_get_uri = {.uri = "/*", .method = HTTP_GET, .handler = rest_common_get_handler};

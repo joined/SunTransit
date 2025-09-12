@@ -20,15 +20,15 @@ import parse from 'autosuggest-highlight/parse';
 import axios from 'axios';
 import { useState, useMemo, useEffect, HTMLAttributes } from 'react';
 import * as R from 'remeda';
-import { CurrentStationPostRequestSchema, LocationsQueryRequestQuerySchema } from 'frontend/api/Requests';
+import { LocationsQueryRequestQuerySchema } from 'frontend/api/Requests';
 import LineIcon from 'frontend/components/LineIcon';
-import { ParsedStation, LineProductType } from 'frontend/Types';
+import { ParsedStation, LineProductType, Settings } from 'frontend/Types';
 
 export interface StationChangeDialogProps {
     currentStationId: string | null;
     open: boolean;
     isMutating: boolean;
-    saveNewCurrentStation: (newCurrentStation: CurrentStationPostRequestSchema, onSuccess: () => void) => void;
+    saveNewCurrentStation: (newCurrentStation: NonNullable<Settings['currentStation']>, onSuccess: () => void) => void;
     onClose: () => void;
 }
 
@@ -128,15 +128,20 @@ export default function StationChangeDialog({
     };
 
     const renderOption = (
-        props: HTMLAttributes<HTMLLIElement>,
+        props: HTMLAttributes<HTMLLIElement> & { key: unknown },
         { name: stationName, linesByProduct }: ParsedStation,
         state: AutocompleteRenderOptionState
     ) => {
         const matches = match(stationName, state.inputValue, { insideWords: true });
         const parts = parse(stationName, matches);
 
+        // TODO Fix when upgrading material UI? This is sketchy
+        // https://github.com/mui/material-ui/issues/39833
+        // eslint-disable-next-line react/prop-types
+        const { key, ...rest } = props;
+
         return (
-            <li {...props}>
+            <li {...rest} key={key as React.Key | undefined | null}>
                 <Grid container alignItems="center">
                     <Grid item css={css`width: 'calc(100% - 44px)', word-wrap: 'break-word'`}>
                         {parts.map((part, index) => (

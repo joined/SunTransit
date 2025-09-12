@@ -1,9 +1,7 @@
 import { css } from '@emotion/react';
 import { Stack, Typography, Tooltip, Switch, Grid } from '@mui/material';
-import { CurrentStationPostRequestSchema } from 'frontend/api/Requests';
-import { CurrentStationGetResponse } from 'frontend/api/Responses';
 import LineIcon from 'frontend/components/LineIcon';
-import { LineProductType } from 'frontend/Types';
+import { LineProductType, Settings } from 'frontend/Types';
 
 interface ServicesRowProps {
     product: LineProductType;
@@ -69,8 +67,8 @@ function ServicesProductRow({
 }
 
 interface ServicesSectionProps {
-    currentStation: NonNullable<CurrentStationGetResponse>;
-    saveNewCurrentStation: (newCurrentStation: CurrentStationPostRequestSchema) => void;
+    currentStation: NonNullable<Settings['currentStation']>;
+    saveNewCurrentStation: (newCurrentStation: NonNullable<Settings['currentStation']>) => void;
     disableToggles: boolean;
 }
 
@@ -88,7 +86,9 @@ export default function ServicesSection({
             ...currentStation,
             enabledProducts: enabled
                 ? [...currentStation.enabledProducts, product]
-                : currentStation.enabledProducts.filter((enabledProduct) => enabledProduct !== product),
+                : currentStation.enabledProducts.filter(
+                      (enabledProduct: LineProductType) => enabledProduct !== product
+                  ),
         });
     };
 
