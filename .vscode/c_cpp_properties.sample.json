@@ -1,12 +1,12 @@
 {
     "configurations": [
         {
-            "name": "ESP-IDF",
+            "name": "ESP32",
             "cStandard": "c23",
             "cppStandard": "c++23",
             "defines": ["ESP_PLATFORM"],
             // Replace with compiler path, remove this comment
-            "compilerPath": "/home/myusername/.espressif/tools/xtensa-esp32-elf/esp-12.2.0_20230208/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc",
+            "compilerPath": "/home/myusername/.espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc",
             "includePath": [
                 "${workspaceFolder}/build/config/*",
                 "${config:idf.espIdfPath}/components/freertos/FreeRTOS-Kernel/include",
@@ -22,6 +22,37 @@
                     "${workspaceFolder}"
                 ],
                 "limitSymbolsToIncludedHeaders": false
+            }
+        },
+        {
+            "name": "Simulator",
+            "cStandard": "c23",
+            "cppStandard": "c++23",
+            "defines": [
+                "PLATFORMIO=60118",
+                "USE_SDL",
+                "LV_CONF_INCLUDE_SIMPLE",
+                "LV_LVGL_H_INCLUDE_SIMPLE"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "includePath": [
+                "${workspaceFolder}/simulator/src",
+                "${workspaceFolder}/simulator/lib/ui",
+                "${workspaceFolder}/simulator/include",
+                "${workspaceFolder}/.pio/libdeps/emulator/lv_drivers",
+                "${workspaceFolder}/.pio/libdeps/emulator/lvgl",
+                "${workspaceFolder}/.pio/libdeps/emulator/lvgl/src"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "${workspaceFolder}/simulator/src",
+                    "${workspaceFolder}/simulator/lib/ui",
+                    "${workspaceFolder}/simulator/include",
+                    "${workspaceFolder}/.pio/libdeps/emulator/lv_drivers",
+                    "${workspaceFolder}/.pio/libdeps/emulator/lvgl",
+                    "${workspaceFolder}/.pio/libdeps/emulator/lvgl/src"
+                ]
             }
         }
     ],

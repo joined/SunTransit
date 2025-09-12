@@ -150,11 +150,10 @@ jobs:
               run: pip install --upgrade platformio
             - name: Build PlatformIO Project
               run: |
-                  cd simulator
-                  pio run --verbose --environment emulator
+                  pio run
             - name: Archive build output artifacts
               uses: actions/upload-artifact@v4
               with:
                   name: simulator
-                  path: simulator/.pio/build/emulator/program
+                  path: .pio/build/emulator/program
                   compression-level: 0

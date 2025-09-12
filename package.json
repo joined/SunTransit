@@ -1,6 +1,9 @@
 {
     "private": true,
     "scripts": {
+        "simulator:fullclean": "pio run -t fullclean",
+        "simulator:clean": "pio run -t clean",
+        "simulator:run": "pio run -t upload",
         "lint:frontend:eslint": "eslint .",
         "lint:frontend:ts": "tsc --noEmit",
         "lint:prettier": "prettier --check .",

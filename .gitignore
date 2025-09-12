@@ -13,8 +13,7 @@
 /sdkconfig.old
 
 # Simulator
-/simulator/.pio/
-/simulator/.vscode/
+/.pio/
 
 # Docs
 /docs_build/

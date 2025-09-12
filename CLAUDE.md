@@ -30,9 +30,9 @@ SunTransit is an ESP32-based IoT project that displays Berlin public transport (
 - `pip install -r requirements.txt` - Install Python dependencies
 
 ### Simulator Development
-- Use PlatformIO in VSCode for the `simulator/` directory as a separate workspace
 - Install libsdl2 dependency: `sudo apt-get install libsdl2-dev`
-- Build and run through PlatformIO IDE or `pio run -t upload` in simulator directory
+- `pio run` - Build simulator (runs from project root, includes UI from `esp/ui/` directly)
+- `pio run -t upload` - Build and run simulator
 
 ### Code Quality
 - `clang-format -i esp/**/*.{c,cpp,h,hpp}` - Format C++ code
