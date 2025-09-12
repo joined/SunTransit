@@ -27,6 +27,7 @@ const int WIFI_CONNECTED_EVENT = BIT0;
 static EventGroupHandle_t wifi_event_group;
 
 static const char *TAG = "MAIN";
+static esp_timer_handle_t wifi_timeout_timer = nullptr;
 
 #define PROV_MGR_MAX_RETRY_COUNT 3
 
@@ -267,8 +268,6 @@ const esp_timer_create_args_t lastUpdatedRefreshTimerArgs = {
 
 esp_timer_handle_t lastUpdatedRefreshTimerHandle = nullptr;
 
-static esp_timer_handle_t wifi_timeout_timer = nullptr;
-
 static void wifi_timeout_callback(void *arg) {
     ESP_LOGW(TAG, "WiFi connection timeout after 20 seconds, showing reset button");
     splash_screen.showConnectingToWiFiWithResetButton(reset_wifi_and_reboot);
@@ -324,7 +323,7 @@ extern "C" void app_main(void) {
     }
 
     /* Wait for Wi-Fi connection */
-    EventBits_t uxBits = xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, true, true, portMAX_DELAY);
+    xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, true, true, portMAX_DELAY);
 
     if (provisioned) {
         splash_screen.showConnectedSwitchingToMain();
