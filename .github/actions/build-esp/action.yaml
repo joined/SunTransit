@@ -20,9 +20,9 @@ runs:
         - name: Cache esp-idf build
           uses: actions/cache@v3
           with:
-              # TODO This caching seems useless
+              # TODO This caching seems to be working only partially
               path: 'build'
-              key: ${{ runner.os }}-build-v8
+              key: ${{ runner.os }}-build-v9
         - name: Cache managed components
           uses: actions/cache@v3
           with:
