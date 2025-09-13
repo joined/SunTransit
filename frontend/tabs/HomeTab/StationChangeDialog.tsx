@@ -2,7 +2,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
     debounce,
     AutocompleteRenderOptionState,
-    Grid2,
+    Grid,
     Box,
     useMediaQuery,
     Dialog,
@@ -142,8 +142,8 @@ export default function StationChangeDialog({
 
         return (
             <li {...rest} key={key as React.Key | undefined | null}>
-                <Grid2 container alignItems="center">
-                    <Grid2 css={css`width: 'calc(100% - 44px)', word-wrap: 'break-word'`}>
+                <Grid container alignItems="center">
+                    <Grid css={css`width: 'calc(100% - 44px)', word-wrap: 'break-word'`}>
                         {parts.map((part, index) => (
                             <Box
                                 key={index}
@@ -154,22 +154,22 @@ export default function StationChangeDialog({
                                 {part.text}
                             </Box>
                         ))}
-                    </Grid2>
-                    <Grid2 container columnGap={0.5} rowGap={0.5}>
+                    </Grid>
+                    <Grid container columnGap={0.5} rowGap={0.5}>
                         {Object.entries(linesByProduct).map(([product, lineNames]) =>
                             lineNames.map((lineName) => (
-                                <Grid2
+                                <Grid
                                     key={lineName}
                                     css={css`
                                         width: 40px;
                                         height: 15px;
                                     `}>
                                     <LineIcon name={lineName} type={product as LineProductType} />
-                                </Grid2>
+                                </Grid>
                             ))
                         )}
-                    </Grid2>
-                </Grid2>
+                    </Grid>
+                </Grid>
             </li>
         );
     };
