@@ -1,4 +1,4 @@
-import { AlertColor } from '@mui/material';
+import { AlertColor } from '@mui/material/Alert';
 import { useReducer } from 'react';
 
 interface SnackbarReducerState {

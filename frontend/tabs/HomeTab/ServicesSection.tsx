@@ -1,5 +1,9 @@
 import { css } from '@emotion/react';
-import { Stack, Typography, Tooltip, Switch, Grid } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import LineIcon from 'frontend/components/LineIcon';
 import { LineProductType, Settings } from 'frontend/Types';
 

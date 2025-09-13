@@ -5,21 +5,19 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import PauseIcon from '@mui/icons-material/Pause';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
-import {
-    CircularProgress,
-    Typography,
-    FormGroup,
-    FormControlLabel,
-    Checkbox,
-    TableContainer,
-    Paper,
-    Table,
-    TableBody,
-    TableRow,
-    TableCell,
-    TableHead,
-    Box,
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Checkbox from '@mui/material/Checkbox';
+import CircularProgress from '@mui/material/CircularProgress';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormGroup from '@mui/material/FormGroup';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Typography from '@mui/material/Typography';
 import { AxiosError } from 'axios';
 import React, { useState } from 'react';
 import * as R from 'remeda';
