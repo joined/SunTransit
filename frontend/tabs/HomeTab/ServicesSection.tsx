@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Stack, Typography, Tooltip, Switch, Grid } from '@mui/material';
+import { Stack, Typography, Tooltip, Switch, Grid2 } from '@mui/material';
 import LineIcon from 'frontend/components/LineIcon';
 import { LineProductType, Settings } from 'frontend/Types';
 
@@ -32,10 +32,12 @@ function ServicesProductRow({
                     <Tooltip
                         title={`Click to ${enabled ? 'disable' : 'enable'}`}
                         disableInteractive
-                        PopperProps={{
-                            popperOptions: {
-                                modifiers: ['preventOverflow'],
-                                strategy: 'fixed',
+                        slotProps={{
+                            popper: {
+                                popperOptions: {
+                                    modifiers: ['preventOverflow'],
+                                    strategy: 'fixed',
+                                },
                             },
                         }}>
                         <Switch
@@ -48,20 +50,19 @@ function ServicesProductRow({
                     </Tooltip>
                 )}
             </Stack>
-            <Grid container key={product} columnGap={1} rowGap={1}>
+            <Grid2 container key={product} columnGap={1} rowGap={1}>
                 {lineNames.map((name) => (
                     // TODO Figure out what's the deal with the SVG size
-                    <Grid
-                        item
+                    <Grid2
                         key={name}
                         css={css`
                             width: 60px;
                             height: 23px;
                         `}>
                         <LineIcon name={name} type={product} disabled={!enabled} fontSize="small" />
-                    </Grid>
+                    </Grid2>
                 ))}
-            </Grid>
+            </Grid2>
         </Stack>
     );
 }

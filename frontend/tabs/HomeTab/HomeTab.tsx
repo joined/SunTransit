@@ -167,10 +167,12 @@ export function HomeTab() {
                                 onChange={(e) => {
                                     setMinDepartureMinutes(Math.max(0, Math.min(30, parseInt(e.target.value) || 0)));
                                 }}
-                                inputProps={{
-                                    min: 0,
-                                    max: 30,
-                                    step: 1,
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0,
+                                        max: 30,
+                                        step: 1,
+                                    },
                                 }}
                                 sx={{ minWidth: { xs: '100%', sm: 300 } }}
                                 disabled={isSettingsMutating || isSettingsValidating}

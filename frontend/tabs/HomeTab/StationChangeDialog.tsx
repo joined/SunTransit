@@ -2,7 +2,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
     debounce,
     AutocompleteRenderOptionState,
-    Grid,
+    Grid2,
     Box,
     useMediaQuery,
     Dialog,
@@ -142,8 +142,8 @@ export default function StationChangeDialog({
 
         return (
             <li {...rest} key={key as React.Key | undefined | null}>
-                <Grid container alignItems="center">
-                    <Grid item css={css`width: 'calc(100% - 44px)', word-wrap: 'break-word'`}>
+                <Grid2 container alignItems="center">
+                    <Grid2 css={css`width: 'calc(100% - 44px)', word-wrap: 'break-word'`}>
                         {parts.map((part, index) => (
                             <Box
                                 key={index}
@@ -154,23 +154,22 @@ export default function StationChangeDialog({
                                 {part.text}
                             </Box>
                         ))}
-                    </Grid>
-                    <Grid item container columnGap={0.5} rowGap={0.5}>
+                    </Grid2>
+                    <Grid2 container columnGap={0.5} rowGap={0.5}>
                         {Object.entries(linesByProduct).map(([product, lineNames]) =>
                             lineNames.map((lineName) => (
-                                <Grid
-                                    item
+                                <Grid2
                                     key={lineName}
                                     css={css`
                                         width: 40px;
                                         height: 15px;
                                     `}>
                                     <LineIcon name={lineName} type={product as LineProductType} />
-                                </Grid>
+                                </Grid2>
                             ))
                         )}
-                    </Grid>
-                </Grid>
+                    </Grid2>
+                </Grid2>
             </li>
         );
     };
@@ -181,7 +180,11 @@ export default function StationChangeDialog({
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     return (
-        <Dialog fullScreen={fullScreen} onClose={handleClose} open={open} PaperProps={{ sx: { overflowY: 'visible' } }}>
+        <Dialog
+            fullScreen={fullScreen}
+            onClose={handleClose}
+            open={open}
+            slotProps={{ paper: { sx: { overflowY: 'visible' } } }}>
             <DialogTitle>Select new station</DialogTitle>
             <IconButton
                 aria-label="close"
