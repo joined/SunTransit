@@ -36,8 +36,8 @@
             ],
             "compilerPath": "/usr/bin/gcc",
             "includePath": [
+                "${workspaceFolder}/esp/ui",
                 "${workspaceFolder}/simulator/src",
-                "${workspaceFolder}/simulator/lib/ui",
                 "${workspaceFolder}/simulator/include",
                 "${workspaceFolder}/.pio/libdeps/emulator/lv_drivers",
                 "${workspaceFolder}/.pio/libdeps/emulator/lvgl",
@@ -46,8 +46,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
+                    "${workspaceFolder}/esp/ui",
                     "${workspaceFolder}/simulator/src",
-                    "${workspaceFolder}/simulator/lib/ui",
                     "${workspaceFolder}/simulator/include",
                     "${workspaceFolder}/.pio/libdeps/emulator/lv_drivers",
                     "${workspaceFolder}/.pio/libdeps/emulator/lvgl",
