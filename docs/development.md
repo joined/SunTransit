@@ -33,5 +33,5 @@ You'll need to use to use [pnpm](https://pnpm.io/) to build it.
 Useful commands:
 
 -   `pnpm i`: installs the dependencies
--   `pnpm start`: starts a dev server with hot reloading and the mock backend API server
+-   `pnpm start`: starts a dev server with hot reloading and the mock backend API (via msw)
 -   `pnpm build`: builds the gzipped production version of the app, to be stored in the data partition of the ESP

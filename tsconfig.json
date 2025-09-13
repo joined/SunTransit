@@ -6,13 +6,13 @@
         "jsx": "react-jsx",
         "jsxImportSource": "@emotion/react",
         "lib": ["dom", "esnext"],
-        "module": "esnext",
+        "module": "es2022",
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "strict": true,
         "strictNullChecks": true,
-        "target": "es2015",
-        "types": ["jest", "@testing-library/jest-dom"]
+        "target": "es2022",
+        "types": ["node", "jest", "@testing-library/jest-dom"]
     },
     "include": ["frontend/**/*"]
 }

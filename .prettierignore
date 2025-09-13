@@ -4,6 +4,6 @@
 !/frontend/
 !/jest.setup.js
 !/mkdocs.yaml
-!/mockBackend.js
 !/README.md
 !/tsconfig.json
+!/package.json

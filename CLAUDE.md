@@ -14,7 +14,7 @@ SunTransit is an ESP32-based IoT project that displays Berlin public transport (
 
 ### Frontend Development
 - `pnpm i` - Install dependencies (pnpm is required, enforced by preinstall hook)
-- `pnpm start` - Start development server with hot reload + mock backend API
+- `pnpm start` - Start development server with hot reload + mock backend API (via msw)
 - `pnpm build` - Build production version (creates gzipped files in frontend_dist/)
 - `pnpm test` - Run Jest tests for frontend components
 - `pnpm run lint:frontend:eslint` - Run ESLint on frontend code
