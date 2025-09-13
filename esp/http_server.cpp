@@ -269,7 +269,7 @@ static esp_err_t api_set_settings_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
-    if (settings_doc.containsKey("minDepartureMinutes")) {
+    if (settings_doc["minDepartureMinutes"].is<JsonVariant>()) {
         if (!settings_doc["minDepartureMinutes"].is<int>()) {
             httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "minDepartureMinutes must be a number");
             return ESP_FAIL;
@@ -283,13 +283,13 @@ static esp_err_t api_set_settings_handler(httpd_req_t *req) {
     }
 
     // Validate and update currentStation if provided
-    if (settings_doc.containsKey("currentStation")) {
+    if (settings_doc["currentStation"].is<JsonVariant>()) {
         auto currentStation = settings_doc["currentStation"];
-        if (!currentStation.containsKey("id") || !currentStation["id"].is<const char *>()) {
+        if (!currentStation["id"].is<JsonVariant>() || !currentStation["id"].is<const char *>()) {
             httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "currentStation.id is required and must be a string");
             return ESP_FAIL;
         }
-        if (!currentStation.containsKey("enabledProducts") || !currentStation["enabledProducts"].is<JsonArrayConst>()) {
+        if (!currentStation["enabledProducts"].is<JsonArrayConst>()) {
             httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
                                 "currentStation.enabledProducts is required and must be an array");
             return ESP_FAIL;
