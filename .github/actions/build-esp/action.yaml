@@ -31,6 +31,6 @@ runs:
         - name: esp-idf build and merge firmware
           run: |
               docker run -t -e IDF_TARGET="esp32" -e GITHUB_ACTIONS=true -v "${GITHUB_WORKSPACE}:/app/${{ github.repository }}" \
-              -w "/app/${{ github.repository }}" espressif/idf:release-v5.1 \
+              -w "/app/${{ github.repository }}" espressif/idf:release-v5.5 \
               /bin/bash -c 'git config --global --add safe.directory "*" && idf.py build && cd /app/${{ github.repository }}/scripts && ./merge_firmware.sh'
           shell: bash
