@@ -16,7 +16,7 @@ struct Trip {
 
 class BvgApiClient {
   public:
-    BvgApiClient(const std::string &stationId);
+    BvgApiClient();
     ~BvgApiClient();
     std::vector<Trip> fetchAndParseTrips(const std::string &stationId, const std::vector<std::string> &enabledProducts);
 

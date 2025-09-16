@@ -258,7 +258,7 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
 void DeparturesRefresherTask(void *pvParameter) {
     uint8_t message;
 
-    auto apiClient = BvgApiClient("900078102");
+    auto apiClient = BvgApiClient();
 
     while (true) {
         if (xQueueReceive(departuresRefreshQueue, &message, 0) == pdPASS) {
