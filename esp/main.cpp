@@ -180,7 +180,7 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
     auto err = nvs_engine.readSettings(&settingsDoc);
     if (err) {
         ESP_LOGE(TAG, "Failed to read settings from NVS");
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         departures_screen.showStationNotFoundError();
         return;
     }
@@ -188,7 +188,7 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
     if (settingsDoc["currentStation"].isNull()) {
         ESP_LOGD(TAG, "No current station configured");
         // TODO Do not repeat this all the time, save the status and update the screen only on change
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         departures_screen.showStationNotFoundError();
         return;
     }
@@ -212,7 +212,7 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
 
     {
         // Update departures screen with tripId-based management for efficient updates
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         const auto now = Time::timePointNow();
 
         // Keep track of current tripIds to remove stale items

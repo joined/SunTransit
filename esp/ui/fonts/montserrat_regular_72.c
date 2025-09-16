@@ -1,8 +1,16 @@
 /*******************************************************************************
  * Size: 72 px
  * Bpp: 4
- * Opts: 
+ * Opts: --bpp 4 --size 72 --no-compress --stride 1 --align 1 --font Montserrat-Regular.ttf --symbols SunTransit --format lvgl -o montserrat_regular_72.c
  ******************************************************************************/
+
+#ifdef __has_include
+#if __has_include("lvgl.h")
+#ifndef LV_LVGL_H_INCLUDE_SIMPLE
+#define LV_LVGL_H_INCLUDE_SIMPLE
+#endif
+#endif
+#endif
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
 #include "lvgl.h"
@@ -353,9 +361,12 @@ static const lv_font_fmt_txt_cmap_t cmaps[] = {{.range_start = 83,
  *  ALL CUSTOM DATA
  *--------------------*/
 
-#if LVGL_VERSION_MAJOR >= 8
+#if LVGL_VERSION_MAJOR == 8
 /*Store all the custom data of the font*/
 static lv_font_fmt_txt_glyph_cache_t cache;
+#endif
+
+#if LVGL_VERSION_MAJOR >= 8
 static const lv_font_fmt_txt_dsc_t font_dsc = {
 #else
 static lv_font_fmt_txt_dsc_t font_dsc = {
@@ -369,10 +380,13 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
     .bpp = 4,
     .kern_classes = 0,
     .bitmap_format = 0,
-#if LVGL_VERSION_MAJOR >= 8
+#if LVGL_VERSION_MAJOR == 8
     .cache = &cache
 #endif
+
 };
+
+extern const lv_font_t lv_font_montserrat_14;
 
 /*-----------------
  *  PUBLIC FONT
@@ -395,8 +409,12 @@ lv_font_t montserrat_regular_72 = {
     .underline_position = -7,
     .underline_thickness = 4,
 #endif
+    .static_bitmap = 0,
     .dsc = &font_dsc, /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
-    .fallback = NULL,
-    .user_data = NULL};
+#if LV_VERSION_CHECK(8, 2, 0) || LVGL_VERSION_MAJOR >= 9
+    .fallback = &lv_font_montserrat_14,
+#endif
+    .user_data = NULL,
+};
 
 #endif /*#if MONTSERRAT_REGULAR_72*/

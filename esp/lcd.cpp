@@ -49,8 +49,6 @@
 
 static const char *TAG = "LCD";
 
-extern std::recursive_mutex lvgl_mutex;
-
 /* LCD IO and panel */
 static esp_lcd_panel_io_handle_t lcd_io = NULL;
 static esp_lcd_panel_handle_t lcd_panel = NULL;
@@ -80,7 +78,7 @@ static esp_err_t app_lcd_init(void) {
         .sclk_io_num = LCD_ST7796_GPIO_SCLK,
         .quadwp_io_num = GPIO_NUM_NC,
         .quadhd_io_num = GPIO_NUM_NC,
-        .max_transfer_sz = LCD_ST7796_H_RES * LCD_ST7796_DRAW_BUFF_HEIGHT,
+        .max_transfer_sz = LCD_ST7796_H_RES * LCD_ST7796_DRAW_BUFF_HEIGHT * sizeof(uint16_t),
     };
     ESP_RETURN_ON_ERROR(spi_bus_initialize(LCD_ST7796_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
 
@@ -136,7 +134,7 @@ static esp_err_t app_lcd_init(void) {
 }
 
 static esp_err_t app_touch_init(void) {
-    /* Initilize I2C */
+    /* Initialize I2C */
     const i2c_config_t i2c_conf = {.mode = I2C_MODE_MASTER,
                                    .sda_io_num = TOUCH_GT911_I2C_SDA,
                                    .scl_io_num = TOUCH_GT911_I2C_SCL,
@@ -153,7 +151,8 @@ static esp_err_t app_touch_init(void) {
         .x_max = LCD_ST7796_V_RES,
         .y_max = LCD_ST7796_H_RES,
         .rst_gpio_num = GPIO_NUM_NC, // Shared with LCD reset
-        .int_gpio_num = TOUCH_GT911_GPIO_INT,
+        // Touch interrupt is unusable due to routing mistake, see https://esp3d.io/ESP3D-TFT/Version_1.X/hardware/esp32/sunton-35-3248/
+        .int_gpio_num = GPIO_NUM_NC,
         .levels =
             {
                 .reset = 0,
@@ -173,30 +172,10 @@ static esp_err_t app_touch_init(void) {
     return esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, &touch_handle);
 }
 
-static void IRAM_ATTR lvgl_port_tick_increment(void) { lv_tick_inc(portTICK_PERIOD_MS); };
-
-static void IRAM_ATTR timer_task(void *arg) {
-    // Relying on the return value of `lv_timer_handler` like `esp_lvgl_port` does
-    // to decide the `vTaskDelay` does not seem to work, we then get UI updates
-    // only after max_sleep_ms, so we just use a fixed delay.
-    while (true) {
-        {
-            const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
-            lv_timer_handler();
-        }
-        vTaskDelay(pdMS_TO_TICKS(5));
-    }
-};
-
 static esp_err_t app_lvgl_init(void) {
-    /* Initialize LVGL */
-    lv_init();
-
-    ESP_RETURN_ON_ERROR(esp_register_freertos_tick_hook(lvgl_port_tick_increment), TAG,
-                        "Failed to register lvgl tick callback");
-    ESP_RETURN_ON_FALSE(xTaskCreatePinnedToCore(timer_task, "lvgl_timer", 4096, NULL, 4, NULL, tskNO_AFFINITY) ==
-                            pdPASS,
-                        127, TAG, "%s", "Failed to create lvgl_timer task");
+    // TODO Maybe optimize stack size / affinity?
+    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
+    ESP_RETURN_ON_ERROR(lvgl_port_init(&lvgl_cfg), TAG, "LVGL port initialization failed");
 
     /* Add LCD screen */
     ESP_LOGD(TAG, "Add LCD screen");
@@ -217,6 +196,7 @@ static esp_err_t app_lvgl_init(void) {
             },
         .flags = {
             .buff_dma = true,
+            .swap_bytes = true,
         }};
     lvgl_disp = lvgl_port_add_disp(&disp_cfg);
 

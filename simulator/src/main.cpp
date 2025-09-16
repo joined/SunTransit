@@ -1,4 +1,5 @@
 #include "lvgl_sdl.h"
+#include <SDL2/SDL.h>
 #include <chrono>
 #include <random>
 #include <string>
@@ -200,7 +201,7 @@ int main(void) {
     // Apparently that might even be required on some OSes.
     while (true) {
         {
-            const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+            const ui_lock_guard lock;
             // NOTE: `lv_timer_handler` must be called from the same thread that initialized LVGL/SDL
             lv_timer_handler();
         }

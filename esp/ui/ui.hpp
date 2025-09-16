@@ -7,16 +7,33 @@
 #include <string>
 #include <unordered_map>
 
+// Cross-platform LVGL mutex handling
+#ifdef ESP_PLATFORM
+#include "esp_lvgl_port.h"
+
+class ui_lock_guard {
+  public:
+    ui_lock_guard() { lvgl_port_lock(0); }
+    ~ui_lock_guard() { lvgl_port_unlock(); }
+};
+
+#else
+// Simulator build - use std::recursive_mutex
 inline std::recursive_mutex lvgl_mutex;
 
-/* Used for the small text in the departures panel */
+class ui_lock_guard {
+  public:
+    ui_lock_guard() : lock_(lvgl_mutex) {}
+
+  private:
+    std::lock_guard<std::recursive_mutex> lock_;
+};
+#endif
+
+// TODO Think about using binary fonts to reduce memory usage/space
 LV_FONT_DECLARE(montserrat_regular_16);
-/* Used for the line and the ETD in the departures panel */
 LV_FONT_DECLARE(roboto_condensed_light_28_4bpp);
-/* Used for the direction in the departures panel. Special features: has `⟲⟳` symbols (U+27F2 and U+27F3, for Ringbahn).
- */
 LV_FONT_DECLARE(roboto_condensed_regular_28_4bpp);
-/* Used for the big title in the splash screen. Has only the "SunTransit" characters. */
 LV_FONT_DECLARE(montserrat_regular_72);
 
 class Screen {

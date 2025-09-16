@@ -16,13 +16,13 @@ void Screen::switchTo(lv_scr_load_anim_t anim_type, uint32_t time, uint32_t dela
     }
 
     {
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         lv_scr_load_anim(screen, anim_type, time, delay, true);
     }
 }
 
 lv_obj_t *Screen::createPanel(lv_scroll_snap_t snap_type) {
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     auto *panel = lv_obj_create(screen);
     lv_obj_set_width(panel, lv_pct(100));
     lv_obj_set_height(panel, 250);
@@ -31,7 +31,8 @@ lv_obj_t *Screen::createPanel(lv_scroll_snap_t snap_type) {
     lv_obj_set_flex_flow(panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
     lv_obj_set_scroll_snap_y(panel, snap_type);
-    lv_obj_clear_flag(panel, LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN);
+    lv_obj_clear_flag(panel, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
+                                                        LV_OBJ_FLAG_SCROLL_CHAIN));
     lv_obj_set_style_radius(panel, 0, DEFAULT_SELECTOR);
     lv_obj_set_style_border_width(panel, 0, DEFAULT_SELECTOR);
     lv_obj_set_style_pad_hor(panel, 10, DEFAULT_SELECTOR);
@@ -42,7 +43,7 @@ lv_obj_t *Screen::createPanel(lv_scroll_snap_t snap_type) {
 };
 
 void SplashScreen::init() {
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, Color::black, DEFAULT_SELECTOR);
 
@@ -60,7 +61,7 @@ void SplashScreen::init() {
     lv_obj_set_style_text_color(status, Color::white, DEFAULT_SELECTOR);
     lv_obj_set_style_text_font(status, &montserrat_regular_16, DEFAULT_SELECTOR);
 
-    spinner = lv_spinner_create(screen, 1000, 90);
+    spinner = lv_spinner_create(screen);
     lv_obj_set_width(spinner, 50);
     lv_obj_set_height(spinner, 51);
     lv_obj_set_y(spinner, 60);
@@ -74,12 +75,12 @@ void SplashScreen::updateStatus(const std::string &message) {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     lv_label_set_text(status, message.c_str());
 };
 
 void ProvisioningScreen::init() {
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, Color::black, DEFAULT_SELECTOR);
     lv_obj_set_style_bg_opa(screen, 255, DEFAULT_SELECTOR);
@@ -98,7 +99,7 @@ void ProvisioningScreen::addLine(const std::string &message) {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     auto *log_line = lv_label_create(panel);
     lv_obj_set_width(log_line, lv_pct(100));
     lv_obj_set_height(log_line, LV_SIZE_CONTENT);
@@ -118,8 +119,11 @@ void ProvisioningScreen::addQRCode(const std::string &data, const int size) {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
-    auto *qrcode = lv_qrcode_create(panel, size, Color::black, Color::white);
+    const ui_lock_guard lock;
+    auto *qrcode = lv_qrcode_create(panel);
+    lv_qrcode_set_size(qrcode, size);
+    lv_qrcode_set_dark_color(qrcode, Color::black);
+    lv_qrcode_set_light_color(qrcode, Color::white);
     lv_qrcode_update(qrcode, data.c_str(), data.length());
 
     lv_obj_scroll_to_y(panel, LV_COORD_MAX, LV_ANIM_OFF);
@@ -127,7 +131,7 @@ void ProvisioningScreen::addQRCode(const std::string &data, const int size) {
 
 void DepartureItem::create(lv_obj_t *parent, const std::string &line_text, const std::string &direction_text,
                            const std::string &time_text, const std::optional<std::chrono::seconds> &time_to_departure) {
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     departure_time = time_to_departure;
 
     item = lv_obj_create(parent);
@@ -170,7 +174,7 @@ void DepartureItem::update(const std::string &line_text, const std::string &dire
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     departure_time = time_to_departure;
     lv_label_set_text(line, line_text.c_str());
     lv_label_set_text(direction, direction_text.c_str());
@@ -183,7 +187,7 @@ void DepartureItem::destroy() {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     lv_obj_del(item);
     item = nullptr;
     line = nullptr;
@@ -192,7 +196,7 @@ void DepartureItem::destroy() {
 }
 
 void DeparturesScreen::init() {
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, Color::black, DEFAULT_SELECTOR);
 
@@ -201,6 +205,7 @@ void DeparturesScreen::init() {
     lv_obj_set_y(line, 7);
     lv_label_set_text(line, "Line");
     lv_obj_set_style_text_font(line, &roboto_condensed_light_28_4bpp, DEFAULT_SELECTOR);
+    lv_obj_set_style_text_color(line, Color::white, DEFAULT_SELECTOR);
 
     direction = lv_label_create(line);
     lv_obj_set_x(direction, 66);
@@ -264,7 +269,7 @@ void DeparturesScreen::addTextItem(const std::string &text) {
     }
 
     {
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         auto *item = lv_label_create(panel);
         lv_obj_set_width(item, lv_pct(100));
         lv_obj_set_align(item, LV_ALIGN_CENTER);
@@ -280,7 +285,7 @@ void DeparturesScreen::clean() {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     lv_obj_clean(panel);
     departure_items.clear();
 };
@@ -297,7 +302,7 @@ void DeparturesScreen::updateLastUpdatedTime() {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     last_updated_time = std::chrono::system_clock::now();
     lv_label_set_text(last_updated_label, "Last updated: 0s ago");
 }
@@ -307,7 +312,7 @@ void DeparturesScreen::refreshLastUpdatedDisplay() {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
     auto now = std::chrono::system_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - last_updated_time);
     auto seconds = duration.count();
@@ -331,7 +336,7 @@ void DeparturesScreen::reorderByDepartureTime() {
         return;
     }
 
-    const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+    const ui_lock_guard lock;
 
     // Create a vector of (trip_id, departure_time) pairs for sorting
     std::vector<std::pair<std::string, std::optional<std::chrono::seconds>>> sorted_items;
@@ -366,10 +371,9 @@ void DeparturesScreen::reorderByDepartureTime() {
 void UIManager::init() {
     // TODO Make use of the theme, allow switching between themes
     {
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         auto *dispp = lv_disp_get_default();
-        auto *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),
-                                            true, LV_FONT_DEFAULT);
+        auto *theme = lv_theme_simple_init(dispp);
         lv_disp_set_theme(dispp, theme);
     }
 
@@ -388,12 +392,12 @@ void SplashScreen::showConnectingToWiFiWithResetButton(void (*reset_callback)())
 
     // Hide the spinner when showing the reset button
     if (spinner != nullptr) {
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         lv_obj_add_flag(spinner, LV_OBJ_FLAG_HIDDEN);
     }
 
     if (reset_button == nullptr) {
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         reset_button = lv_btn_create(screen);
         lv_obj_set_width(reset_button, 200);
         lv_obj_set_height(reset_button, 40);
@@ -424,7 +428,7 @@ void SplashScreen::showConnectedSwitchingToMain() {
 
     // Hide reset button if it was shown
     if (reset_button != nullptr) {
-        const std::lock_guard<std::recursive_mutex> lock(lvgl_mutex);
+        const ui_lock_guard lock;
         lv_obj_add_flag(reset_button, LV_OBJ_FLAG_HIDDEN);
     }
 }

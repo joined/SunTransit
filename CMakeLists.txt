@@ -16,6 +16,9 @@ idf_build_set_property(COMPILE_OPTIONS "-Wno-missing-field-initializers" APPEND)
 # Seems like it's fixed on `master`, but not in the latest release (v8.3)
 
 # TODO The following should be handled via menuconfig, but they're missing in the KConfig
+# TODO These cause warnings like:
+# `warning: ignoring attribute 'section (".iram1.4")' because it conflicts with previous 'section (".iram1.1")' [-Wattributes]`
+# because IRAM_ATTR expands to a macro that uses __COUNTER__, do something about it?
 idf_build_set_property(COMPILE_OPTIONS "-DLV_ATTRIBUTE_TIMER_HANDLER=IRAM_ATTR" APPEND)
 idf_build_set_property(COMPILE_OPTIONS "-DLV_ATTRIBUTE_TICK_INC=IRAM_ATTR" APPEND)
 
