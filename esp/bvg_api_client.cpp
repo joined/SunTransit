@@ -19,9 +19,11 @@ static char http_client_buffer[HTTP_CLIENT_BUFFER_SIZE];
 const std::vector<std::string> ALL_PRODUCTS = {"suburban", "subway", "tram", "bus", "ferry", "express", "regional"};
 
 // TODO Remove unused `stationId`
-BvgApiClient::BvgApiClient(const std::string &stationId) {
+BvgApiClient::BvgApiClient(const std::string &stationId) { initClient(); }
+
+void BvgApiClient::initClient() {
     esp_http_client_config_t config = {
-        .url = "https://www.google.com", // Set later
+        .url = "https://v6.bvg.transport.rest", // Base URL, actual endpoint set via setUrl()
         .user_agent = "SunTransit gasparini.lorenzo@gmail.com",
         .timeout_ms = 10000, // Seems to help with timeout issues
         .event_handler =
@@ -37,6 +39,13 @@ BvgApiClient::BvgApiClient(const std::string &stationId) {
 }
 
 BvgApiClient::~BvgApiClient() { esp_http_client_cleanup(client); }
+
+void BvgApiClient::resetConnection() {
+    ESP_LOGW(TAG, "Resetting HTTP connection due to failures");
+    esp_http_client_cleanup(client);
+    initClient();
+    consecutive_failures = 0;
+}
 
 esp_err_t BvgApiClient::http_event_handler(esp_http_client_event_t *evt) {
     switch (evt->event_id) {
@@ -72,6 +81,7 @@ void BvgApiClient::setUrl(const std::string &stationId, const std::vector<std::s
     std::map<std::string, std::string> queryParams = {
         {"results", std::to_string(N_RESULTS)},
         {"pretty", "false"},
+        {"remarks", "false"},
         // TODO Extract to constant
         {"duration", std::to_string(60)},
     };
@@ -104,9 +114,18 @@ std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
     auto err = esp_http_client_perform(client);
 
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
+        consecutive_failures++;
+        ESP_LOGE(TAG, "HTTP GET request failed: %s (consecutive failures: %d)", esp_err_to_name(err),
+                 consecutive_failures);
+
+        if (consecutive_failures >= MAX_CONSECUTIVE_FAILURES) {
+            ESP_LOGW(TAG, "Too many consecutive failures (%d), resetting connection", consecutive_failures);
+            resetConnection();
+        }
         return {};
     }
+
+    consecutive_failures = 0;
 
     JsonDocument filter;
     filter["departures"][0]["tripId"] = true;
