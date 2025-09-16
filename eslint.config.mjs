@@ -52,6 +52,12 @@ export default [
                     default: 'generic',
                 },
             ],
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [{ regex: '^@mui/[^/]+$' }],
+                },
+            ],
         },
         settings: {
             'import/parsers': {

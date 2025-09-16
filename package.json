@@ -82,5 +82,8 @@
         "workerDirectory": [
             "dist"
         ]
+    },
+    "@parcel/resolver-default": {
+        "packageExports": true
     }
 }
