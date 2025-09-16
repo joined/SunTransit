@@ -183,7 +183,7 @@ const TaskTable = ({ data }: { data: Array<SysInfoTaskResponse> }) => (
                             {task.name}
                         </TableCell>
                         <TableCell align="right">{task.priority}</TableCell>
-                        <TableCell align="right">{Math.round(task.stack_high_water_mark * 4)} bytes</TableCell>
+                        <TableCell align="right">{task.stack_high_water_mark} bytes</TableCell>
                         <TableCell align="right">{TASK_STATUS_TO_ICON[task.state]}</TableCell>
                         {task.runtime !== null ? <TableCell align="right">{task.runtime}%</TableCell> : null}
                         {task.core_id !== null ? <TableCell align="right">{task.core_id}</TableCell> : null}
