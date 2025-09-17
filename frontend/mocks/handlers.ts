@@ -2,6 +2,7 @@
 import { http, HttpResponse } from 'msw';
 import type { SettingsRequest } from '../api/Requests';
 import type { SysInfoResponse, SettingsResponse } from '../api/Responses';
+import type { LineProductType } from '../Types';
 
 const MOCK_STORAGE_KEY = 'msw_mock_settings';
 
@@ -43,6 +44,25 @@ export function clearMockStorage(): void {
     }
 }
 
+const buildMockBvgUrl = (station: SettingsResponse['currentStation'], maxResults: number): string | null => {
+    if (!station) return null;
+
+    const products: Array<LineProductType> = ['suburban', 'subway', 'tram', 'bus', 'ferry', 'express', 'regional'];
+    const productParams = Object.fromEntries(
+        products.map((product) => [product, station.enabledProducts.includes(product).toString()])
+    );
+
+    const params = new URLSearchParams({
+        results: maxResults.toString(),
+        pretty: 'false',
+        remarks: 'false',
+        duration: '60',
+        ...productParams,
+    });
+
+    return `https://v6.bvg.transport.rest/stops/${station.id}/departures?${params.toString()}`;
+};
+
 const ENABLE_FAILURES = false;
 const FAILURE_RATE = 0.2;
 
@@ -51,6 +71,7 @@ export const handlers = [
         const enableTrace = true;
         const enableRuntime = true;
         const enableCoreId = true;
+        const { currentStation, maxDepartureCount } = loadSettingsFromStorage();
 
         const response: SysInfoResponse = {
             app_state: {
@@ -71,6 +92,9 @@ export const handlers = [
             memory: {
                 free_heap: 123456,
                 minimum_free_heap: 123456,
+            },
+            debug: {
+                bvg_api_url: buildMockBvgUrl(currentStation, maxDepartureCount),
             },
             tasks: enableTrace
                 ? [...Array<number>(10)].map((_, index) => ({

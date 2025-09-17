@@ -38,10 +38,15 @@ export interface SysInfoTaskResponse {
     core_id: number | null;
 }
 
+export interface SysInfoDebugResponse {
+    bvg_api_url: string | null;
+}
+
 export interface SysInfoResponse {
     app_state: SysInfoAppStateResponse;
     software: SysInfoSoftwareResponse;
     hardware: SysInfoHardwareResponse;
     memory: SysInfoMemoryResponse;
+    debug: SysInfoDebugResponse;
     tasks: Array<SysInfoTaskResponse> | null;
 }

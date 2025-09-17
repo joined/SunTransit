@@ -75,8 +75,8 @@ esp_err_t BvgApiClient::http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-void BvgApiClient::setUrl(const std::string &stationId, const std::vector<std::string> &enabledProducts,
-                          int maxResults) {
+std::string BvgApiClient::buildURL(const std::string &stationId, const std::vector<std::string> &enabledProducts,
+                                   int maxResults) {
     std::map<std::string, std::string> queryParams = {
         {"results", std::to_string(maxResults)},
         {"pretty", "false"},
@@ -104,7 +104,13 @@ void BvgApiClient::setUrl(const std::string &stationId, const std::vector<std::s
         url << entry->first << "=" << entry->second;
     }
 
-    esp_http_client_set_url(client, url.str().c_str());
+    return url.str();
+}
+
+void BvgApiClient::setUrl(const std::string &stationId, const std::vector<std::string> &enabledProducts,
+                          int maxResults) {
+    auto url = buildURL(stationId, enabledProducts, maxResults);
+    esp_http_client_set_url(client, url.c_str());
 }
 
 // TODO The params are only passed to setUrl(), maybe we can call that directly and remove the params?

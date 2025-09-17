@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ArduinoJson.h>
+#include <chrono>
 #include <ctime>
 #include <esp_http_client.h>
 #include <optional>
@@ -20,6 +21,8 @@ class BvgApiClient {
     ~BvgApiClient();
     std::vector<Trip> fetchAndParseTrips(const std::string &stationId, const std::vector<std::string> &enabledProducts,
                                          int maxResults);
+    static std::string buildURL(const std::string &stationId, const std::vector<std::string> &enabledProducts,
+                                int maxResults);
 
   private:
     esp_http_client_handle_t client;

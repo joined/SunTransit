@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+#include "bvg_api_client.hpp"
 #include "http_server.hpp"
 #include "nvs_engine.hpp"
 #include "time.hpp"
@@ -171,6 +172,30 @@ static esp_err_t api_get_sysinfo_handler(httpd_req_t *req) {
     memory["minimum_free_heap"] = esp_get_minimum_free_heap_size();
     // TODO The following line seems to be causing panics. Investigate.
     // memory["largest_free_heap_block"] = heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT);
+
+    auto debug = doc["debug"].to<JsonObject>();
+
+    // Read current settings to build the actual API URL
+    NVSEngine nvs_engine_for_debug("suntransit");
+    JsonDocument current_settings;
+    auto settings_err = nvs_engine_for_debug.readSettings(&current_settings);
+    if (settings_err == ESP_OK && !current_settings["currentStation"]["id"].isNull()) {
+        const char *station_id = current_settings["currentStation"]["id"];
+        int max_departure_count = current_settings["maxDepartureCount"];
+
+        // Build enabled products list
+        std::vector<std::string> enabled_products;
+        JsonArray products = current_settings["currentStation"]["enabledProducts"];
+        for (JsonVariant product : products) {
+            enabled_products.push_back(product.as<std::string>());
+        }
+
+        // Build the actual URL that would be used
+        auto actual_url = BvgApiClient::buildURL(station_id, enabled_products, max_departure_count);
+        debug["bvg_api_url"] = actual_url;
+    } else {
+        debug["bvg_api_url"] = nullptr;
+    }
 
     // TODO Add total runtime?
 

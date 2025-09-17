@@ -10,6 +10,7 @@ import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
+import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -29,6 +30,7 @@ import {
     SysInfoHardwareResponse,
     SysInfoTaskResponse,
     SysInfoAppStateResponse,
+    SysInfoDebugResponse,
 } from '../../api/Responses';
 import { getRequestSender } from '../../util/Ajax';
 import { SYS_INFO_REFRESH_INTERVAL } from '../../util/Constants';
@@ -65,6 +67,7 @@ const KEY_TO_LABEL: Record<string, string> = {
     minimum_free_heap: 'Minimum free heap since boot',
     mac_address: 'MAC address',
     chip_model: 'Chip model',
+    bvg_api_url: 'BVG API URL',
 };
 
 const bottomMarginStyle = css`
@@ -158,6 +161,33 @@ const HardwareTable = ({ data }: { data: SysInfoHardwareResponse }) => (
     </TableContainer>
 );
 
+const DebugTable = ({ data }: { data: SysInfoDebugResponse }) => (
+    <TableContainer component={Paper} css={bottomMarginStyle}>
+        <Table>
+            <TableBody>
+                <TableRow key={'bvg_api_url'} css={lastTableRowStyle}>
+                    <TableCell component="th" scope="row">
+                        {KEY_TO_LABEL.bvg_api_url}
+                    </TableCell>
+                    <TableCell
+                        align="right"
+                        css={css`
+                            word-break: break-all;
+                        `}>
+                        {data.bvg_api_url ? (
+                            <Link href={data.bvg_api_url} target="_blank" rel="noopener noreferrer" color="primary">
+                                {data.bvg_api_url}
+                            </Link>
+                        ) : (
+                            'No station configured'
+                        )}
+                    </TableCell>
+                </TableRow>
+            </TableBody>
+        </Table>
+    </TableContainer>
+);
+
 const TaskTable = ({ data }: { data: Array<SysInfoTaskResponse> }) => (
     <TableContainer component={Paper} css={bottomMarginStyle}>
         <Table>
@@ -245,6 +275,10 @@ export const SystemInformationTab = () => {
                 Hardware
             </Typography>
             <HardwareTable data={data.hardware} />
+            <Typography variant="h4" gutterBottom>
+                Debug
+            </Typography>
+            <DebugTable data={data.debug} />
             {data.tasks ? (
                 <>
                     <Typography variant="h4" gutterBottom>
