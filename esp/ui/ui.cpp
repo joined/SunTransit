@@ -106,6 +106,7 @@ void ProvisioningScreen::addLine(const std::string &message) {
     lv_obj_set_align(log_line, LV_ALIGN_TOP_LEFT);
     lv_label_set_text(log_line, message.c_str());
     lv_obj_set_style_text_font(log_line, &montserrat_regular_16, DEFAULT_SELECTOR);
+    lv_obj_set_style_text_color(log_line, Color::white, DEFAULT_SELECTOR);
 
     lv_obj_scroll_to_y(panel, LV_COORD_MAX, LV_ANIM_OFF);
 
