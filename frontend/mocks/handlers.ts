@@ -3,13 +3,45 @@ import { http, HttpResponse } from 'msw';
 import type { SettingsRequest } from '../api/Requests';
 import type { SysInfoResponse, SettingsResponse } from '../api/Responses';
 
-// TODO Use localStorage to persist settings across reloads
+const MOCK_STORAGE_KEY = 'msw_mock_settings';
 
-let settings: SettingsResponse = {
-    minDepartureMinutes: 0,
-    maxDepartureCount: 12,
-    currentStation: null,
-};
+function getDefaultSettings(): SettingsResponse {
+    return {
+        minDepartureMinutes: 0,
+        maxDepartureCount: 12,
+        currentStation: null,
+    };
+}
+
+function loadSettingsFromStorage(): SettingsResponse {
+    try {
+        const stored = localStorage.getItem(MOCK_STORAGE_KEY);
+        if (stored) {
+            return JSON.parse(stored) as SettingsResponse;
+        }
+    } catch (error) {
+        console.warn('Failed to load mock settings from localStorage:', error);
+    }
+
+    return getDefaultSettings();
+}
+
+function saveSettingsToStorage(newSettings: SettingsResponse): void {
+    try {
+        localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(newSettings));
+    } catch (error) {
+        console.warn('Failed to save mock settings to localStorage:', error);
+    }
+}
+
+export function clearMockStorage(): void {
+    try {
+        localStorage.removeItem(MOCK_STORAGE_KEY);
+        console.log('Mock storage cleared, reset to defaults');
+    } catch (error) {
+        console.warn('Failed to clear mock storage:', error);
+    }
+}
 
 const ENABLE_FAILURES = false;
 const FAILURE_RATE = 0.2;
@@ -59,7 +91,7 @@ export const handlers = [
         if (ENABLE_FAILURES && Math.random() < FAILURE_RATE) {
             return new HttpResponse(null, { status: 500 });
         }
-        return HttpResponse.json(settings);
+        return HttpResponse.json(loadSettingsFromStorage());
     }),
 
     http.post('/api/settings', async ({ request }) => {
@@ -68,8 +100,10 @@ export const handlers = [
         }
 
         const body = (await request.json()) as SettingsRequest;
-        settings = { ...settings, ...body };
-        console.log('Updated settings:', JSON.stringify(settings, null, 2));
+        const currentSettings = loadSettingsFromStorage();
+        const updatedSettings = { ...currentSettings, ...body };
+        saveSettingsToStorage(updatedSettings);
+        console.log('Updated settings:', JSON.stringify(updatedSettings, null, 2));
 
         return HttpResponse.json({});
     }),

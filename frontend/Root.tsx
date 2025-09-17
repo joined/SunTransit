@@ -1,6 +1,7 @@
 import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import MenuIcon from '@mui/icons-material/Menu';
+import PhonelinkEraseIcon from '@mui/icons-material/PhonelinkErase';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -43,6 +44,11 @@ const NavigationDrawerContent = ({ onNavigation }: { onNavigation?: VoidFunction
     const navigate = useNavigate();
     const { pathname } = useLocation();
 
+    const handleClearMockStorage = async () => {
+        const { clearMockStorage } = await import('./mocks/handlers');
+        clearMockStorage();
+    };
+
     return (
         <List>
             {ROUTES.map((route) => (
@@ -58,6 +64,19 @@ const NavigationDrawerContent = ({ onNavigation }: { onNavigation?: VoidFunction
                     </ListItemButton>
                 </ListItem>
             ))}
+            {process.env.NODE_ENV === 'development' && (
+                <ListItem disablePadding>
+                    <ListItemButton
+                        onClick={() => {
+                            void handleClearMockStorage();
+                        }}>
+                        <ListItemIcon>
+                            <PhonelinkEraseIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Clear Mock Storage" />
+                    </ListItemButton>
+                </ListItem>
+            )}
         </List>
     );
 };
