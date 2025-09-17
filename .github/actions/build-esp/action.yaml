@@ -27,14 +27,18 @@ runs:
           with:
               path: .ccache
               key: ccache-${{ runner.os }}-esp32-idf551-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig.defaults', 'dependencies.lock') }}
-              restore-keys: |
-                  ccache-${{ runner.os }}-esp32-idf551-
 
         - name: Cache managed components
           uses: actions/cache@v4
           with:
               path: managed_components
               key: managed_components-${{ runner.os }}-${{ hashFiles('dependencies.lock') }}
+
+        - name: Pull and cache Docker image
+          shell: bash
+          run: |
+              IMAGE="espressif/idf:v5.5.1"
+              docker pull "$IMAGE"
 
         - name: esp-idf build and merge firmware
           shell: bash
