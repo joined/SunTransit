@@ -125,22 +125,23 @@ export default function StationChangeDialog({
     };
 
     const renderOption = (
-        props: HTMLAttributes<HTMLLIElement> & { key: unknown },
+        propsWithKey: HTMLAttributes<HTMLLIElement> & { key: unknown },
         { name: stationName, linesByProduct }: ParsedStation,
         state: AutocompleteRenderOptionState
     ) => {
         const matches = match(stationName, state.inputValue, { insideWords: true });
         const parts = parse(stationName, matches);
 
-        // TODO Fix when upgrading material UI? This is sketchy
-        // https://github.com/mui/material-ui/issues/39833
-        // eslint-disable-next-line react/prop-types
-        const { key, ...rest } = props;
+        const { key, ...props } = propsWithKey;
 
         return (
-            <li {...rest} key={key as React.Key | undefined | null}>
-                <Grid container alignItems="center">
-                    <Grid css={css`width: 'calc(100% - 44px)', word-wrap: 'break-word'`}>
+            <li {...props} key={key as React.Key}>
+                <Grid container direction="column" spacing={0.25}>
+                    <Grid
+                        size={12}
+                        css={css`
+                            word-wrap: 'break-word';
+                        `}>
                         {parts.map((part, index) => (
                             <Box
                                 key={index}
@@ -152,19 +153,21 @@ export default function StationChangeDialog({
                             </Box>
                         ))}
                     </Grid>
-                    <Grid container columnGap={0.5} rowGap={0.5}>
-                        {Object.entries(linesByProduct).map(([product, lineNames]) =>
-                            lineNames.map((lineName) => (
-                                <Grid
-                                    key={lineName}
-                                    css={css`
-                                        width: 40px;
-                                        height: 15px;
-                                    `}>
-                                    <LineIcon name={lineName} type={product as LineProductType} />
-                                </Grid>
-                            ))
-                        )}
+                    <Grid size={12}>
+                        <Grid container columnGap={0.5} rowGap={0.5}>
+                            {Object.entries(linesByProduct).map(([product, lineNames]) =>
+                                lineNames.map((lineName) => (
+                                    <Grid
+                                        key={lineName}
+                                        css={css`
+                                            width: 40px;
+                                            display: flex;
+                                        `}>
+                                        <LineIcon name={lineName} type={product as LineProductType} />
+                                    </Grid>
+                                ))
+                            )}
+                        </Grid>
                     </Grid>
                 </Grid>
             </li>
