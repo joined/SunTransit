@@ -22,7 +22,7 @@ import Typography from '@mui/material/Typography';
 import { AxiosError } from 'axios';
 import React, { useState } from 'react';
 import * as R from 'remeda';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import {
     SysInfoResponse,
     SysInfoSoftwareResponse,
@@ -226,7 +226,7 @@ const TaskTable = ({ data }: { data: Array<SysInfoTaskResponse> }) => (
 
 export const SystemInformationTab = () => {
     const [isAutoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
-    const { data, error, isLoading } = useSWRImmutable<SysInfoResponse, AxiosError>('/api/sysinfo', getRequestSender, {
+    const { data, error, isLoading } = useSWR<SysInfoResponse, AxiosError>('/api/sysinfo', getRequestSender, {
         refreshInterval: isAutoRefreshEnabled ? SYS_INFO_REFRESH_INTERVAL : 0,
     });
 
