@@ -45,8 +45,10 @@ const NavigationDrawerContent = ({ onNavigation }: { onNavigation?: VoidFunction
     const { pathname } = useLocation();
 
     const handleClearMockStorage = async () => {
-        const { clearMockStorage } = await import('./mocks/handlers');
-        clearMockStorage();
+        if (process.env.NODE_ENV === 'development') {
+            const { clearMockStorage } = await import('./mocks/handlers');
+            clearMockStorage();
+        }
     };
 
     return (
