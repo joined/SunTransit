@@ -10,7 +10,7 @@
         "lint:prettier": "prettier --check .",
         "prebuild": "rm -rf frontend_dist",
         "preinstall": "npx only-allow pnpm",
-        "prestart": "msw init",
+        "prestart": "msw init > /dev/null 2>&1",
         "start": "parcel",
         "build": "parcel build --no-source-maps",
         "postbuild": "find frontend_dist/ -type f ! -name '*.gz' -delete && find frontend_dist/ -type f -name '*.map.gz' -delete && ls -lah frontend_dist/",
