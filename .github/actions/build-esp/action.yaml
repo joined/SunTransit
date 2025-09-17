@@ -1,7 +1,11 @@
 name: Build ESP binaries
 description: Build ESP binaries
 
-# TODO IDF version should be a parameter to this action
+inputs:
+    idf_version:
+        description: 'ESP-IDF version to use'
+        required: false
+        default: 'v5.5.1'
 
 runs:
     using: 'composite'
@@ -26,7 +30,7 @@ runs:
           uses: actions/cache@v4
           with:
               path: .ccache
-              key: ccache-${{ runner.os }}-esp32-idf551-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig.defaults', 'dependencies.lock') }}
+              key: ccache-${{ runner.os }}-esp32-${{ inputs.idf_version }}-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig.defaults', 'dependencies.lock') }}
 
         - name: Cache managed components
           uses: actions/cache@v4
@@ -34,17 +38,11 @@ runs:
               path: managed_components
               key: managed_components-${{ runner.os }}-${{ hashFiles('dependencies.lock') }}
 
-        - name: Pull and cache Docker image
-          shell: bash
-          run: |
-              IMAGE="espressif/idf:v5.5.1"
-              docker pull "$IMAGE"
-
         - name: esp-idf build and merge firmware
           shell: bash
           run: |
               set -euo pipefail
-              IMAGE="espressif/idf:v5.5.1"
+              IMAGE="espressif/idf:${{ inputs.idf_version }}"
 
               docker run --rm -t \
                 -e IDF_TARGET="esp32" \
