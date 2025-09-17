@@ -9,6 +9,7 @@
 #include <esp_system.h>
 #include <esp_vfs.h>
 #include <fcntl.h>
+#include <format>
 #include <ranges>
 #include <string>
 #include <vector>
@@ -24,6 +25,12 @@ static const constexpr size_t FS_READ_BUFFER_SIZE = 30 * 1024;
 // -> should probably increase stack size of the httpd task to make it a local buffer
 static char scratch[FS_READ_BUFFER_SIZE];
 static const char *TAG = "http_server";
+
+// TODO Somehow sync with frontend
+static constexpr int MIN_DEPARTURE_MINUTES_MIN = 0;
+static constexpr int MIN_DEPARTURE_MINUTES_MAX = 30;
+static constexpr int MAX_DEPARTURE_COUNT_MIN = 1;
+static constexpr int MAX_DEPARTURE_COUNT_MAX = 20;
 
 static esp_err_t init_fs(void) {
     esp_vfs_spiffs_conf_t conf = {
@@ -275,11 +282,28 @@ static esp_err_t api_set_settings_handler(httpd_req_t *req) {
             return ESP_FAIL;
         }
         int minDepartureMinutes = settings_doc["minDepartureMinutes"];
-        if (minDepartureMinutes < 0 || minDepartureMinutes > 30) {
-            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "minDepartureMinutes must be between 0 and 30");
+        if (minDepartureMinutes < MIN_DEPARTURE_MINUTES_MIN || minDepartureMinutes > MIN_DEPARTURE_MINUTES_MAX) {
+            auto error_msg = std::format("minDepartureMinutes must be between {} and {}", MIN_DEPARTURE_MINUTES_MIN,
+                                         MIN_DEPARTURE_MINUTES_MAX);
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, error_msg.c_str());
             return ESP_FAIL;
         }
         currentSettings["minDepartureMinutes"] = minDepartureMinutes;
+    }
+
+    if (settings_doc["maxDepartureCount"].is<JsonVariant>()) {
+        if (!settings_doc["maxDepartureCount"].is<int>()) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "maxDepartureCount must be a number");
+            return ESP_FAIL;
+        }
+        int maxDepartureCount = settings_doc["maxDepartureCount"];
+        if (maxDepartureCount < MAX_DEPARTURE_COUNT_MIN || maxDepartureCount > MAX_DEPARTURE_COUNT_MAX) {
+            auto error_msg = std::format("maxDepartureCount must be between {} and {}", MAX_DEPARTURE_COUNT_MIN,
+                                         MAX_DEPARTURE_COUNT_MAX);
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, error_msg.c_str());
+            return ESP_FAIL;
+        }
+        currentSettings["maxDepartureCount"] = maxDepartureCount;
     }
 
     // Validate and update currentStation if provided
@@ -303,6 +327,8 @@ static esp_err_t api_set_settings_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
+    // TODO Reset scroll position when changing settings? For sure when changing station
+
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, "{}");
     return ESP_OK;
@@ -315,6 +341,7 @@ httpd_handle_t setup_http_server() {
     config.uri_match_fn = httpd_uri_match_wildcard;
     httpd_handle_t server = NULL;
 
+    // TODO This error check seems to fail after provisioning a fresh device :think:
     ESP_ERROR_CHECK(httpd_start(&server, &config));
 
     httpd_uri_t api_get_sysinfo_uri = {

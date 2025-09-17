@@ -12,7 +12,7 @@
 
 static const char *TAG = "BvgApiClient";
 
-// ~21KB for the average response with N_RESULTS=12
+// 23052 bytes (22.5 KB) is the max observed size of a response with maxResults=20
 static const constexpr size_t HTTP_CLIENT_BUFFER_SIZE = 30 * 1024;
 static char http_client_buffer[HTTP_CLIENT_BUFFER_SIZE];
 
@@ -75,10 +75,10 @@ esp_err_t BvgApiClient::http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-void BvgApiClient::setUrl(const std::string &stationId, const std::vector<std::string> &enabledProducts) {
-    // TODO store and read number of results from NVS. keep in mind that memory is limited.
+void BvgApiClient::setUrl(const std::string &stationId, const std::vector<std::string> &enabledProducts,
+                          int maxResults) {
     std::map<std::string, std::string> queryParams = {
-        {"results", std::to_string(N_RESULTS)},
+        {"results", std::to_string(maxResults)},
         {"pretty", "false"},
         {"remarks", "false"},
         // TODO Extract to constant
@@ -107,9 +107,11 @@ void BvgApiClient::setUrl(const std::string &stationId, const std::vector<std::s
     esp_http_client_set_url(client, url.str().c_str());
 }
 
+// TODO The params are only passed to setUrl(), maybe we can call that directly and remove the params?
+// Or better, call `setUrl` in the settings HTTP post handler
 std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
-                                                   const std::vector<std::string> &enabledProducts) {
-    this->setUrl(stationId, enabledProducts);
+                                                   const std::vector<std::string> &enabledProducts, int maxResults) {
+    this->setUrl(stationId, enabledProducts, maxResults);
     auto err = esp_http_client_perform(client);
 
     if (err != ESP_OK) {

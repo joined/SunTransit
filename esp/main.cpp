@@ -193,16 +193,21 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
         return;
     }
 
+    // TODO When the station is configured initially, the "station not found" message
+    // remains until the first reboot. Fix
     auto currentStationDoc = settingsDoc["currentStation"];
     int minDepartureMinutes = settingsDoc["minDepartureMinutes"];
+    int maxDepartureCount = settingsDoc["maxDepartureCount"];
+
     ESP_LOGD(TAG, "Minimum departure minutes filter: %d", minDepartureMinutes);
+    ESP_LOGD(TAG, "Maximum departure count: %d", maxDepartureCount);
 
     auto enabledProductsJsonArray = currentStationDoc["enabledProducts"].as<JsonArrayConst>();
     std::vector<std::string> enabledProducts;
     for (auto enabledProduct : enabledProductsJsonArray) {
         enabledProducts.push_back(enabledProduct.as<std::string>());
     }
-    auto trips = apiClient.fetchAndParseTrips(currentStationDoc["id"], enabledProducts);
+    auto trips = apiClient.fetchAndParseTrips(currentStationDoc["id"], enabledProducts, maxDepartureCount);
     ESP_LOGD(TAG, "Fetched and parsed %d trips", trips.size());
 
     if (trips.empty()) {
@@ -303,7 +308,6 @@ extern "C" void app_main(void) {
     NVSEngine::init();
     init_network_wifi_and_wifimanager();
 
-    // 4076 (words, = 16304 bytes) is the max observed used stack
     xTaskCreatePinnedToCore(DeparturesRefresherTask, "DeparturesRefresherTask", 1024 * 5, NULL, 1, NULL, 1);
 
     bool provisioned = false;

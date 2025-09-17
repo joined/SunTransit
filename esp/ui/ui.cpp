@@ -447,7 +447,7 @@ void DeparturesScreen::showLoadingMessage(const std::string &station_name) {
 }
 
 void DeparturesScreen::showStationNotFoundError() {
-    cleanDepartureItems();
+    clean();
     addTextItem("Station not found.");
     addTextItem("Please access http://suntransit.local/ to configure your station.");
 }

@@ -2,7 +2,6 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
-import Paper from '@mui/material/Paper';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -12,10 +11,16 @@ import { useState, useEffect } from 'react';
 
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
-import { SettingsPostRequestSchema } from '../../api/Requests';
-import { SettingsGetResponse } from '../../api/Responses';
-import { Settings } from '../../Types';
+import { SettingsRequest } from '../../api/Requests';
+import { SettingsResponse } from '../../api/Responses';
+import { StationWithProducts } from '../../Types';
 import { getRequestSender, postRequestSender } from '../../util/Ajax';
+import {
+    MIN_DEPARTURE_MINUTES_MIN,
+    MIN_DEPARTURE_MINUTES_MAX,
+    MAX_DEPARTURE_COUNT_MIN,
+    MAX_DEPARTURE_COUNT_MAX,
+} from '../../util/Constants';
 import ServicesSection from './ServicesSection';
 import StationChangeDialog from './StationChangeDialog';
 import { useSnackbarState } from './useSnackbarState';
@@ -44,21 +49,23 @@ export function HomeTab() {
         error: settingsError,
         isLoading: isSettingsLoading,
         isValidating: isSettingsValidating,
-    } = useSWR<SettingsGetResponse, AxiosError>('/api/settings', getRequestSender);
+    } = useSWR<SettingsResponse, AxiosError>('/api/settings', getRequestSender);
     const { trigger: triggerSettings, isMutating: isSettingsMutating } = useSWRMutation(
         '/api/settings',
-        postRequestSender<SettingsPostRequestSchema>,
+        postRequestSender<SettingsRequest>,
         { revalidate: false }
     );
 
     const [isStationChangeDialogOpen, setStationChangeDialogOpen] = useState(false);
-    const [minDepartureMinutes, setMinDepartureMinutes] = useState<number>(0);
+    const [minDepartureMinutes, setMinDepartureMinutes] = useState<number | undefined>(undefined);
+    const [maxDepartureCount, setMaxDepartureCount] = useState<number | undefined>(undefined);
     const { state: snackbarState, openWithMessage: openSnackbarWithMessage, close: closeSnackbar } = useSnackbarState();
 
     // Sync local state with settings response
     useEffect(() => {
         if (settingsResponse) {
             setMinDepartureMinutes(settingsResponse.minDepartureMinutes);
+            setMaxDepartureCount(settingsResponse.maxDepartureCount);
         }
     }, [settingsResponse]);
 
@@ -66,6 +73,7 @@ export function HomeTab() {
         void triggerSettings(
             {
                 minDepartureMinutes,
+                maxDepartureCount,
             },
             {
                 onSuccess: () => {
@@ -78,13 +86,14 @@ export function HomeTab() {
                     ? {
                           ...settingsResponse,
                           minDepartureMinutes,
+                          maxDepartureCount,
                       }
                     : undefined,
             }
         );
     };
 
-    const handleSaveCurrentStation = (newCurrentStation: NonNullable<Settings['currentStation']>) => {
+    const handleSaveCurrentStation = (newCurrentStation: StationWithProducts) => {
         void triggerSettings(
             {
                 currentStation: newCurrentStation,
@@ -159,42 +168,59 @@ export function HomeTab() {
                         disableToggles={isSettingsMutating || isSettingsValidating}
                     />
 
-                    <Paper sx={{ p: 3, mt: 3 }}>
-                        <Typography variant="h5" gutterBottom>
-                            Departure Filter Settings
-                        </Typography>
-                        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-                            Configure the minimum time before departure to show connections. For example, if you set
-                            this to 5 minutes, departures leaving in less than 5 minutes will be hidden.
-                        </Typography>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
-                            <TextField
-                                label="Hide departures leaving in less than (minutes)"
-                                type="number"
-                                value={minDepartureMinutes}
-                                onChange={(e) => {
-                                    setMinDepartureMinutes(Math.max(0, Math.min(30, parseInt(e.target.value) || 0)));
-                                }}
-                                slotProps={{
-                                    htmlInput: {
-                                        min: 0,
-                                        max: 30,
-                                        step: 1,
-                                    },
-                                }}
-                                sx={{ minWidth: { xs: '100%', sm: 300 } }}
-                                disabled={isSettingsMutating || isSettingsValidating}
-                                size="small"
-                            />
-                            <Button
-                                variant="contained"
-                                onClick={handleSaveSettings}
-                                disabled={isSettingsMutating || isSettingsValidating}
-                                sx={{ minWidth: 100 }}>
-                                Save
-                            </Button>
-                        </Stack>
-                    </Paper>
+                    <Typography variant="h4" gutterBottom sx={{ mt: 3, mb: 2 }}>
+                        Settings
+                    </Typography>
+                    <Stack spacing={3}>
+                        <TextField
+                            label={`Maximum number of departures to show (${MAX_DEPARTURE_COUNT_MIN.toString()}-${MAX_DEPARTURE_COUNT_MAX.toString()})`}
+                            type="number"
+                            value={maxDepartureCount ?? ''}
+                            onChange={(e) => {
+                                setMaxDepartureCount(parseInt(e.target.value));
+                            }}
+                            slotProps={{
+                                htmlInput: {
+                                    min: MAX_DEPARTURE_COUNT_MIN,
+                                    max: MAX_DEPARTURE_COUNT_MAX,
+                                    step: 1,
+                                },
+                            }}
+                            sx={{ maxWidth: 360 }}
+                            disabled={isSettingsMutating || isSettingsValidating || maxDepartureCount === undefined}
+                            size="small"
+                        />
+                        <TextField
+                            label={`Hide departures leaving sooner than this (${MIN_DEPARTURE_MINUTES_MIN.toString()}-${MIN_DEPARTURE_MINUTES_MAX.toString()} min)`}
+                            type="number"
+                            value={minDepartureMinutes ?? ''}
+                            onChange={(e) => {
+                                setMinDepartureMinutes(parseInt(e.target.value));
+                            }}
+                            slotProps={{
+                                htmlInput: {
+                                    min: MIN_DEPARTURE_MINUTES_MIN,
+                                    max: MIN_DEPARTURE_MINUTES_MAX,
+                                    step: 1,
+                                },
+                            }}
+                            sx={{ maxWidth: 360 }}
+                            disabled={isSettingsMutating || isSettingsValidating || minDepartureMinutes === undefined}
+                            size="small"
+                        />
+                        <Button
+                            variant="contained"
+                            onClick={handleSaveSettings}
+                            disabled={
+                                isSettingsMutating ||
+                                isSettingsValidating ||
+                                minDepartureMinutes === undefined ||
+                                maxDepartureCount === undefined
+                            }
+                            sx={{ alignSelf: 'flex-start', minWidth: 100 }}>
+                            Save Settings
+                        </Button>
+                    </Stack>
                 </Box>
             )}
             <StationChangeDialog

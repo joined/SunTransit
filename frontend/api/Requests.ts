@@ -1,4 +1,10 @@
-import { SettingsUpdateRequest } from '../Types';
+import { StationWithProducts } from '../Types';
+
+export interface SettingsRequest {
+    minDepartureMinutes?: number;
+    maxDepartureCount?: number;
+    currentStation?: StationWithProducts;
+}
 
 export interface LocationsQueryRequestQuerySchema {
     query: string;
@@ -11,5 +17,3 @@ export interface LocationsQueryRequestQuerySchema {
     language: 'en';
     [key: string]: string | boolean | number | undefined;
 }
-
-export type SettingsPostRequestSchema = SettingsUpdateRequest;

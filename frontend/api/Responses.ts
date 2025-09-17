@@ -1,4 +1,10 @@
-import { Settings } from '../Types';
+import { StationWithProducts } from '../Types';
+
+export interface SettingsResponse {
+    minDepartureMinutes: number;
+    maxDepartureCount: number;
+    currentStation: StationWithProducts | null;
+}
 
 export interface SysInfoAppStateResponse {
     time: number | null;
@@ -39,5 +45,3 @@ export interface SysInfoResponse {
     memory: SysInfoMemoryResponse;
     tasks: Array<SysInfoTaskResponse> | null;
 }
-
-export type SettingsGetResponse = Settings;

@@ -19,13 +19,13 @@ import { useState, useMemo, useEffect, HTMLAttributes } from 'react';
 import * as R from 'remeda';
 import { LocationsQueryRequestQuerySchema } from 'frontend/api/Requests';
 import LineIcon from 'frontend/components/LineIcon';
-import { ParsedStation, LineProductType, Settings } from 'frontend/Types';
+import { ParsedStation, LineProductType, StationWithProducts } from 'frontend/Types';
 
 export interface StationChangeDialogProps {
     currentStationId: string | null;
     open: boolean;
     isMutating: boolean;
-    saveNewCurrentStation: (newCurrentStation: NonNullable<Settings['currentStation']>, onSuccess: () => void) => void;
+    saveNewCurrentStation: (newCurrentStation: StationWithProducts, onSuccess: () => void) => void;
     onClose: () => void;
 }
 

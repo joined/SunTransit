@@ -5,7 +5,7 @@ import Switch from '@mui/material/Switch';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import LineIcon from 'frontend/components/LineIcon';
-import { LineProductType, Settings } from 'frontend/Types';
+import { LineProductType, StationWithProducts } from 'frontend/Types';
 
 interface ServicesRowProps {
     product: LineProductType;
@@ -72,8 +72,8 @@ function ServicesProductRow({
 }
 
 interface ServicesSectionProps {
-    currentStation: NonNullable<Settings['currentStation']>;
-    saveNewCurrentStation: (newCurrentStation: NonNullable<Settings['currentStation']>) => void;
+    currentStation: StationWithProducts;
+    saveNewCurrentStation: (newCurrentStation: StationWithProducts) => void;
     disableToggles: boolean;
 }
 

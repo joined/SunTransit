@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { http, HttpResponse } from 'msw';
-import type { SettingsPostRequestSchema } from '../api/Requests';
-import type { SysInfoResponse, SettingsGetResponse } from '../api/Responses';
+import type { SettingsRequest } from '../api/Requests';
+import type { SysInfoResponse, SettingsResponse } from '../api/Responses';
 
-let settings: SettingsGetResponse = {
+// TODO Use localStorage to persist settings across reloads
+
+let settings: SettingsResponse = {
     minDepartureMinutes: 0,
+    maxDepartureCount: 12,
     currentStation: null,
 };
 
@@ -12,7 +15,6 @@ const ENABLE_FAILURES = false;
 const FAILURE_RATE = 0.2;
 
 export const handlers = [
-    // System Information endpoint
     http.get('/api/sysinfo', () => {
         const enableTrace = true;
         const enableRuntime = true;
@@ -53,7 +55,6 @@ export const handlers = [
         return HttpResponse.json(response);
     }),
 
-    // Get Settings endpoint
     http.get('/api/settings', () => {
         if (ENABLE_FAILURES && Math.random() < FAILURE_RATE) {
             return new HttpResponse(null, { status: 500 });
@@ -61,13 +62,12 @@ export const handlers = [
         return HttpResponse.json(settings);
     }),
 
-    // Post Settings endpoint
     http.post('/api/settings', async ({ request }) => {
         if (ENABLE_FAILURES && Math.random() < FAILURE_RATE) {
             return new HttpResponse(null, { status: 500 });
         }
 
-        const body = (await request.json()) as SettingsPostRequestSchema;
+        const body = (await request.json()) as SettingsRequest;
         settings = { ...settings, ...body };
         console.log('Updated settings:', JSON.stringify(settings, null, 2));
 

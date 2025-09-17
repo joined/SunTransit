@@ -4,6 +4,9 @@
 
 static const char *TAG = "NVS";
 
+static constexpr int DEFAULT_MIN_DEPARTURE_MINUTES = 0;
+static constexpr int DEFAULT_MAX_DEPARTURE_COUNT = 12;
+
 // TODO Have a version number for the NVS namespace so that we can migrate data
 // On opening the NVS, we should check the version number and erase the NVS if
 // it's not the current version
@@ -46,20 +49,24 @@ esp_err_t NVSEngine::setString(const std::string &key, const std::string &value)
     return err;
 };
 
+static void initializeDefaultSettings(JsonDocument *doc) {
+    (*doc)["minDepartureMinutes"] = DEFAULT_MIN_DEPARTURE_MINUTES;
+    (*doc)["maxDepartureCount"] = DEFAULT_MAX_DEPARTURE_COUNT;
+    (*doc)["currentStation"] = nullptr;
+}
+
 esp_err_t NVSEngine::readSettings(JsonDocument *doc) {
     std::string settings;
     auto err = this->readString("settings", &settings);
     if (err != ESP_OK) {
         // Initialize default settings
-        (*doc)["minDepartureMinutes"] = 0;
-        (*doc)["currentStation"] = nullptr;
+        initializeDefaultSettings(doc);
     } else {
         auto deserializationError = deserializeJson(*doc, settings);
         if (deserializationError) {
             ESP_LOGE(TAG, "Failed to parse settings JSON: %s", deserializationError.c_str());
             // Return default settings if parsing fails
-            (*doc)["minDepartureMinutes"] = 0;
-            (*doc)["currentStation"] = nullptr;
+            initializeDefaultSettings(doc);
             return ESP_OK;
         }
     }
