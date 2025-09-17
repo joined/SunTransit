@@ -17,20 +17,14 @@ runs:
               pnpm i
               pnpm build
           shell: bash
-        - name: Cache esp-idf build
-          uses: actions/cache@v3
-          with:
-              # TODO This caching seems to be working only partially
-              path: 'build'
-              key: ${{ runner.os }}-build-v9
         - name: Cache managed components
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
               path: 'managed_components'
-              key: ${{ runner.os }}-managed_components-${{ hashFiles('dependencies.lock') }}-v3
+              key: ${{ runner.os }}-managed_components-${{ hashFiles('dependencies.lock') }}-v4
         - name: esp-idf build and merge firmware
           run: |
               docker run -t -e IDF_TARGET="esp32" -e GITHUB_ACTIONS=true -v "${GITHUB_WORKSPACE}:/app/${{ github.repository }}" \
-              -w "/app/${{ github.repository }}" espressif/idf:release-v5.5 \
+              -w "/app/${{ github.repository }}" espressif/idf:v5.5.1 \
               /bin/bash -c 'git config --global --add safe.directory "*" && idf.py build && cd /app/${{ github.repository }}/scripts && ./merge_firmware.sh'
           shell: bash
