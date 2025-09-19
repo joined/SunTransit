@@ -356,6 +356,7 @@ static esp_err_t api_set_settings_handler(httpd_req_t *req) {
     }
 
     // TODO Reset scroll position when changing settings? For sure when changing station
+    // Also reset it automatically after some time of no user interaction?
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, "{}");

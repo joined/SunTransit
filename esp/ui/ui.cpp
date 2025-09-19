@@ -36,7 +36,7 @@ lv_obj_t *Screen::createPanel() {
     lv_obj_set_style_pad_ver(panel, 5, DEFAULT_SELECTOR);
     lv_obj_set_style_pad_row(panel, 2, DEFAULT_SELECTOR);
     lv_obj_set_style_pad_column(panel, 0, DEFAULT_SELECTOR);
-    // TODO Bring back snapping of departure lines
+    // TODO Bring back snapping of departure lines, without allowing to scroll past the last item somehow
     return panel;
 };
 
