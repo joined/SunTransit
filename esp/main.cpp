@@ -33,6 +33,9 @@ static esp_timer_handle_t wifi_timeout_timer = nullptr;
 
 using namespace std::chrono_literals;
 
+static constexpr auto DEPARTURES_REFRESH_PERIOD = 10s;
+static constexpr auto LAST_UPDATED_REFRESH_PERIOD = 500ms;
+
 void reset_wifi_and_reboot() {
     ESP_LOGI(TAG, "WiFi reset requested by user");
     ESP_LOGI(TAG, "Resetting WiFi provisioning and rebooting...");
@@ -373,13 +376,14 @@ extern "C" void app_main(void) {
 
     departures_screen.switchTo();
     ESP_ERROR_CHECK(esp_timer_create(&departuresRefresherTimerArgs, &departuresRefreshTimerHandle));
-    ESP_ERROR_CHECK(
-        esp_timer_start_periodic(departuresRefreshTimerHandle, duration_cast<std::chrono::microseconds>(5s).count()));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(
+        departuresRefreshTimerHandle,
+        std::chrono::duration_cast<std::chrono::microseconds>(DEPARTURES_REFRESH_PERIOD).count()));
 
-    // Start timer to refresh "last updated" display every 1 second
     ESP_ERROR_CHECK(esp_timer_create(&lastUpdatedRefreshTimerArgs, &lastUpdatedRefreshTimerHandle));
-    ESP_ERROR_CHECK(
-        esp_timer_start_periodic(lastUpdatedRefreshTimerHandle, duration_cast<std::chrono::microseconds>(1s).count()));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(
+        lastUpdatedRefreshTimerHandle,
+        std::chrono::duration_cast<std::chrono::microseconds>(LAST_UPDATED_REFRESH_PERIOD).count()));
 
     printHealthStats("end of app_main");
 };

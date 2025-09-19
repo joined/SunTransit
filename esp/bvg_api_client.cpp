@@ -24,8 +24,7 @@ void BvgApiClient::initClient() {
     esp_http_client_config_t config = {
         .url = "https://v6.bvg.transport.rest", // Base URL, actual endpoint set via setUrl()
         .user_agent = "SunTransit gasparini.lorenzo@gmail.com",
-        // TODO 10s timeout but refresh every 5s, does not make sense
-        .timeout_ms = 10000, // Seems to help with timeout issues
+        .timeout_ms = 8000,
         .event_handler =
             [](esp_http_client_event_t *evt) {
                 auto self = static_cast<BvgApiClient *>(evt->user_data);
