@@ -143,8 +143,6 @@ void DepartureItem::create(lv_obj_t *parent, const std::string &line_text, const
     lv_obj_set_style_pad_ver(item, 0, DEFAULT_SELECTOR);
     lv_obj_set_style_text_color(item, Color::yellow, DEFAULT_SELECTOR);
     lv_obj_set_style_text_font(item, &roboto_condensed_regular_28_4bpp, DEFAULT_SELECTOR);
-    lv_obj_set_style_text_decor(item, is_cancelled ? LV_TEXT_DECOR_STRIKETHROUGH : LV_TEXT_DECOR_NONE,
-                                DEFAULT_SELECTOR);
 
     line = lv_label_create(item);
     lv_obj_set_align(line, LV_ALIGN_LEFT_MID);
@@ -167,6 +165,8 @@ void DepartureItem::create(lv_obj_t *parent, const std::string &line_text, const
     lv_obj_set_align(time, LV_ALIGN_RIGHT_MID);
     lv_obj_set_x(time, -8);
     lv_label_set_text(time, time_text.c_str());
+
+    applyStrikethroughStyle(is_cancelled);
 }
 
 void DepartureItem::update(const std::string &line_text, const std::string &direction_text,
@@ -177,13 +177,12 @@ void DepartureItem::update(const std::string &line_text, const std::string &dire
     }
 
     const ui_lock_guard lock;
-    lv_obj_set_style_text_decor(item, is_cancelled ? LV_TEXT_DECOR_STRIKETHROUGH : LV_TEXT_DECOR_NONE,
-                                DEFAULT_SELECTOR);
     departure_time = time_to_departure;
     lv_label_set_text(line, line_text.c_str());
     lv_label_set_text(direction, direction_text.c_str());
     lv_label_set_long_mode(direction, direction_text.length() > 30 ? LV_LABEL_LONG_SCROLL : LV_LABEL_LONG_DOT);
     lv_label_set_text(time, time_text.c_str());
+    applyStrikethroughStyle(is_cancelled);
 }
 
 void DepartureItem::destroy() {
@@ -197,6 +196,38 @@ void DepartureItem::destroy() {
     line = nullptr;
     direction = nullptr;
     time = nullptr;
+    strikethrough_line = nullptr;
+}
+
+void DepartureItem::applyStrikethroughStyle(bool enable) {
+    if (item == nullptr) {
+        return;
+    }
+
+    const ui_lock_guard lock;
+
+    if (enable) {
+        if (strikethrough_line == nullptr) {
+            // Create the strikethrough line
+            strikethrough_line = lv_obj_create(item);
+            lv_obj_set_width(strikethrough_line, lv_pct(100));
+            lv_obj_set_height(strikethrough_line, 2); // 2px thick line
+            lv_obj_set_align(strikethrough_line, LV_ALIGN_CENTER);
+            lv_obj_set_style_bg_color(strikethrough_line, Color::yellow, DEFAULT_SELECTOR);
+            lv_obj_set_style_bg_opa(strikethrough_line, LV_OPA_COVER, DEFAULT_SELECTOR);
+            lv_obj_set_style_border_width(strikethrough_line, 0, DEFAULT_SELECTOR);
+            lv_obj_set_style_radius(strikethrough_line, 0, DEFAULT_SELECTOR);
+            lv_obj_set_style_pad_all(strikethrough_line, 0, DEFAULT_SELECTOR);
+        } else {
+            // Show existing line
+            lv_obj_clear_flag(strikethrough_line, LV_OBJ_FLAG_HIDDEN);
+        }
+    } else {
+        if (strikethrough_line != nullptr) {
+            // Hide the line
+            lv_obj_add_flag(strikethrough_line, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
 }
 
 void DeparturesScreen::init() {

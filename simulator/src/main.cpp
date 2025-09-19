@@ -161,6 +161,7 @@ static int ui_thread(void *data) {
     uniform_int_distribution<> line_dist(0, BERLIN_LINES.size() - 1);
     uniform_int_distribution<> time_dist(0, 25);
     uniform_int_distribution<> count_dist(8, 15);
+    uniform_int_distribution<> cancelled_dist(1, 100); // 1-100 for percentage
 
     auto generateAndUpdateDepartures = [&]() {
         int count = count_dist(gen);
@@ -173,8 +174,12 @@ static int ui_thread(void *data) {
                 departure_time = chrono::minutes(0);
             }
 
+            // Simulate cancelled departures (20% chance)
+            bool is_cancelled = cancelled_dist(gen) <= 20;
+
             string trip_id = "sim_trip_" + to_string(i);
-            departures_screen.updateDepartureItem(trip_id, line_data.line, line_data.direction, departure_time);
+            departures_screen.updateDepartureItem(trip_id, line_data.line, line_data.direction, departure_time,
+                                                  is_cancelled);
         }
     };
 

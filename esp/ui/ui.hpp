@@ -97,6 +97,7 @@ class DepartureItem {
     lv_obj_t *line = nullptr;
     lv_obj_t *direction = nullptr;
     lv_obj_t *time = nullptr;
+    lv_obj_t *strikethrough_line = nullptr;
     std::chrono::seconds departure_time;
 
     void applyStrikethroughStyle(bool enable);
