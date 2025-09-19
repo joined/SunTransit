@@ -180,6 +180,7 @@ void DepartureItem::update(const std::string &line_text, const std::string &dire
     departure_time = time_to_departure;
     lv_label_set_text(line, line_text.c_str());
     lv_label_set_text(direction, direction_text.c_str());
+    // TODO The label circular scroll is reset when updating the text (= on refresh), avoid it
     lv_label_set_long_mode(direction, direction_text.length() > 30 ? LV_LABEL_LONG_SCROLL : LV_LABEL_LONG_DOT);
     lv_label_set_text(time, time_text.c_str());
     applyStrikethroughStyle(is_cancelled);

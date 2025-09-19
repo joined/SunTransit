@@ -198,9 +198,11 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
     auto currentStationDoc = settingsDoc["currentStation"];
     int minDepartureMinutes = settingsDoc["minDepartureMinutes"];
     int maxDepartureCount = settingsDoc["maxDepartureCount"];
+    bool showCancelledDepartures = settingsDoc["showCancelledDepartures"];
 
     ESP_LOGD(TAG, "Minimum departure minutes filter: %d", minDepartureMinutes);
     ESP_LOGD(TAG, "Maximum departure count: %d", maxDepartureCount);
+    ESP_LOGD(TAG, "Show cancelled departures: %s", showCancelledDepartures ? "true" : "false");
 
     auto enabledProductsJsonArray = currentStationDoc["enabledProducts"].as<JsonArrayConst>();
     std::vector<std::string> enabledProducts;
@@ -237,6 +239,11 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
                              trip.tripId.c_str(), timeToDeparture.count(), minDepartureSeconds.count());
                     continue;
                 }
+            }
+
+            if (!showCancelledDepartures && isCancelled) {
+                ESP_LOGD(TAG, "Filtering out cancelled trip %s", trip.tripId.c_str());
+                continue;
             }
 
             currentTripIds.insert(trip.tripId);

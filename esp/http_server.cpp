@@ -331,6 +331,15 @@ static esp_err_t api_set_settings_handler(httpd_req_t *req) {
         currentSettings["maxDepartureCount"] = maxDepartureCount;
     }
 
+    if (settings_doc["showCancelledDepartures"].is<JsonVariant>()) {
+        if (!settings_doc["showCancelledDepartures"].is<bool>()) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "showCancelledDepartures must be a boolean");
+            return ESP_FAIL;
+        }
+        bool showCancelledDepartures = settings_doc["showCancelledDepartures"];
+        currentSettings["showCancelledDepartures"] = showCancelledDepartures;
+    }
+
     // Validate and update currentStation if provided
     if (settings_doc["currentStation"].is<JsonVariant>()) {
         auto currentStation = settings_doc["currentStation"];

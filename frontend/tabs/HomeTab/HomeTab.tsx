@@ -2,8 +2,10 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { AxiosError } from 'axios';
@@ -59,6 +61,7 @@ export function HomeTab() {
     const [isStationChangeDialogOpen, setStationChangeDialogOpen] = useState(false);
     const [minDepartureMinutes, setMinDepartureMinutes] = useState<number | undefined>(undefined);
     const [maxDepartureCount, setMaxDepartureCount] = useState<number | undefined>(undefined);
+    const [showCancelledDepartures, setShowCancelledDepartures] = useState<boolean | undefined>(undefined);
     const { state: snackbarState, openWithMessage: openSnackbarWithMessage, close: closeSnackbar } = useSnackbarState();
 
     // Sync local state with settings response
@@ -66,6 +69,7 @@ export function HomeTab() {
         if (settingsResponse) {
             setMinDepartureMinutes(settingsResponse.minDepartureMinutes);
             setMaxDepartureCount(settingsResponse.maxDepartureCount);
+            setShowCancelledDepartures(settingsResponse.showCancelledDepartures);
         }
     }, [settingsResponse]);
 
@@ -74,6 +78,7 @@ export function HomeTab() {
             {
                 minDepartureMinutes,
                 maxDepartureCount,
+                showCancelledDepartures,
             },
             {
                 onSuccess: () => {
@@ -87,6 +92,7 @@ export function HomeTab() {
                           ...settingsResponse,
                           minDepartureMinutes,
                           maxDepartureCount,
+                          showCancelledDepartures,
                       }
                     : undefined,
             }
@@ -231,6 +237,18 @@ export function HomeTab() {
                                 sx={{ maxWidth: 360 }}
                                 disabled={isSettingsMutating || isSettingsValidating}
                                 size="small"
+                            />
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={showCancelledDepartures}
+                                        onChange={(e) => {
+                                            setShowCancelledDepartures(e.target.checked);
+                                        }}
+                                        disabled={isSettingsMutating || isSettingsValidating}
+                                    />
+                                }
+                                label="Show cancelled departures"
                             />
                             <Button
                                 type="submit"

@@ -10,6 +10,7 @@ function getDefaultSettings(): SettingsResponse {
     return {
         minDepartureMinutes: 0,
         maxDepartureCount: 12,
+        showCancelledDepartures: true,
         currentStation: null,
     };
 }

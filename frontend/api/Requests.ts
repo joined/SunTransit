@@ -3,6 +3,7 @@ import { StationWithProducts } from '../Types';
 export interface SettingsRequest {
     minDepartureMinutes?: number;
     maxDepartureCount?: number;
+    showCancelledDepartures?: boolean;
     currentStation?: StationWithProducts;
 }
 

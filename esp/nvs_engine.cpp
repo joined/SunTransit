@@ -52,6 +52,7 @@ esp_err_t NVSEngine::setString(const std::string &key, const std::string &value)
 static void initializeDefaultSettings(JsonDocument *doc) {
     (*doc)["minDepartureMinutes"] = DEFAULT_MIN_DEPARTURE_MINUTES;
     (*doc)["maxDepartureCount"] = DEFAULT_MAX_DEPARTURE_COUNT;
+    (*doc)["showCancelledDepartures"] = true;
     (*doc)["currentStation"] = nullptr;
 }
 
