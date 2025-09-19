@@ -131,7 +131,8 @@ void ProvisioningScreen::addQRCode(const std::string &data, const int size) {
 };
 
 void DepartureItem::create(lv_obj_t *parent, const std::string &line_text, const std::string &direction_text,
-                           const std::string &time_text, const std::optional<std::chrono::seconds> &time_to_departure) {
+                           const std::string &time_text, const std::chrono::seconds &time_to_departure,
+                           bool is_cancelled) {
     const ui_lock_guard lock;
     departure_time = time_to_departure;
 
@@ -145,6 +146,8 @@ void DepartureItem::create(lv_obj_t *parent, const std::string &line_text, const
     lv_obj_set_style_pad_ver(item, 0, DEFAULT_SELECTOR);
     lv_obj_set_style_text_color(item, Color::yellow, DEFAULT_SELECTOR);
     lv_obj_set_style_text_font(item, &roboto_condensed_regular_28_4bpp, DEFAULT_SELECTOR);
+    lv_obj_set_style_text_decor(item, is_cancelled ? LV_TEXT_DECOR_STRIKETHROUGH : LV_TEXT_DECOR_NONE,
+                                DEFAULT_SELECTOR);
 
     line = lv_label_create(item);
     lv_obj_set_align(line, LV_ALIGN_LEFT_MID);
@@ -170,12 +173,15 @@ void DepartureItem::create(lv_obj_t *parent, const std::string &line_text, const
 }
 
 void DepartureItem::update(const std::string &line_text, const std::string &direction_text,
-                           const std::string &time_text, const std::optional<std::chrono::seconds> &time_to_departure) {
-    if (!isValid()) {
+                           const std::string &time_text, const std::chrono::seconds &time_to_departure,
+                           bool is_cancelled) {
+    if (item == nullptr) {
         return;
     }
 
     const ui_lock_guard lock;
+    lv_obj_set_style_text_decor(item, is_cancelled ? LV_TEXT_DECOR_STRIKETHROUGH : LV_TEXT_DECOR_NONE,
+                                DEFAULT_SELECTOR);
     departure_time = time_to_departure;
     lv_label_set_text(line, line_text.c_str());
     lv_label_set_text(direction, direction_text.c_str());
@@ -184,7 +190,7 @@ void DepartureItem::update(const std::string &line_text, const std::string &dire
 }
 
 void DepartureItem::destroy() {
-    if (!isValid()) {
+    if (item == nullptr) {
         return;
     }
 
@@ -231,28 +237,22 @@ void DeparturesScreen::init() {
 
 void DeparturesScreen::updateDepartureItem(const std::string &trip_id, const std::string &line_text,
                                            const std::string &direction_text,
-                                           const std::optional<std::chrono::seconds> &time_to_departure) {
+                                           const std::chrono::seconds &time_to_departure, bool is_cancelled) {
     if (panel == nullptr) {
         return;
     }
 
-    std::string time_text;
-    if (time_to_departure.has_value()) {
-        const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(time_to_departure.value()).count();
-        time_text = minutes <= 0 ? "Now" : std::to_string(minutes) + "'";
-    } else {
-        // TODO Use LV_TEXT_DECOR_STRIKETHROUGH instead
-        time_text = "=";
-    }
+    const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(time_to_departure).count();
+    std::string time_text = minutes <= 0 ? "Now" : std::to_string(minutes) + "'";
 
     auto it = departure_items.find(trip_id);
     if (it != departure_items.end()) {
         // Update existing item
-        it->second.update(line_text, direction_text, time_text, time_to_departure);
+        it->second.update(line_text, direction_text, time_text, time_to_departure, is_cancelled);
     } else {
         // Create new item
         DepartureItem &item = departure_items[trip_id];
-        item.create(panel, line_text, direction_text, time_text, time_to_departure);
+        item.create(panel, line_text, direction_text, time_text, time_to_departure, is_cancelled);
     }
 }
 

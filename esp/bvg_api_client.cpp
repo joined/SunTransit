@@ -24,6 +24,7 @@ void BvgApiClient::initClient() {
     esp_http_client_config_t config = {
         .url = "https://v6.bvg.transport.rest", // Base URL, actual endpoint set via setUrl()
         .user_agent = "SunTransit gasparini.lorenzo@gmail.com",
+        // TODO 10s timeout but refresh every 5s, maybe we should lower it?
         .timeout_ms = 10000, // Seems to help with timeout issues
         .event_handler =
             [](esp_http_client_event_t *evt) {
@@ -139,6 +140,7 @@ std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
     filter["departures"][0]["direction"] = true;
     filter["departures"][0]["line"]["name"] = true;
     filter["departures"][0]["when"] = true;
+    filter["departures"][0]["plannedWhen"] = true;
 
     JsonDocument doc;
     // TODO It would be cool to use a std::istream here, would probably save memory too.
@@ -155,7 +157,6 @@ std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
     std::vector<Trip> trips;
     trips.reserve(departure_count);
 
-    Trip trip;
     for (auto departure : departures) {
         const char *tripId = departure["tripId"];
         const char *direction = departure["direction"];
@@ -166,8 +167,13 @@ std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
                 ? std::nullopt
                 : std::make_optional(Time::iSO8601StringToTimePoint(static_cast<const char *>(departure["when"])));
 
-        trips.push_back(
-            {.tripId = tripId, .departureTime = departure_time, .directionName = direction, .lineName = line});
+        const auto planned_time = Time::iSO8601StringToTimePoint(static_cast<const char *>(departure["plannedWhen"]));
+
+        trips.push_back({.tripId = tripId,
+                         .departureTime = departure_time,
+                         .plannedTime = planned_time,
+                         .directionName = direction,
+                         .lineName = line});
     }
 
     return trips;

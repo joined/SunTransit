@@ -85,28 +85,29 @@ class ProvisioningScreen : public Screen {
 class DepartureItem {
   public:
     void create(lv_obj_t *parent, const std::string &line_text, const std::string &direction_text,
-                const std::string &time_text, const std::optional<std::chrono::seconds> &time_to_departure);
+                const std::string &time_text, const std::chrono::seconds &time_to_departure, bool is_cancelled = false);
     void update(const std::string &line_text, const std::string &direction_text, const std::string &time_text,
-                const std::optional<std::chrono::seconds> &time_to_departure);
+                const std::chrono::seconds &time_to_departure, bool is_cancelled = false);
     void destroy();
-    bool isValid() const { return item != nullptr; }
     lv_obj_t *getItem() const { return item; }
-    std::optional<std::chrono::seconds> getDepartureTime() const { return departure_time; }
+    std::chrono::seconds getDepartureTime() const { return departure_time; }
 
   private:
     lv_obj_t *item = nullptr;
     lv_obj_t *line = nullptr;
     lv_obj_t *direction = nullptr;
     lv_obj_t *time = nullptr;
-    std::optional<std::chrono::seconds> departure_time;
+    std::chrono::seconds departure_time;
+
+    void applyStrikethroughStyle(bool enable);
 };
 
 class DeparturesScreen : public Screen {
   public:
     void init();
     void updateDepartureItem(const std::string &trip_id, const std::string &line_text,
-                             const std::string &direction_text,
-                             const std::optional<std::chrono::seconds> &time_to_departure);
+                             const std::string &direction_text, const std::chrono::seconds &time_to_departure,
+                             bool is_cancelled = false);
     void removeDepartureItem(const std::string &trip_id);
     void addTextItem(const std::string &text);
     void clean();

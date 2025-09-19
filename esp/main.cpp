@@ -224,22 +224,24 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
         std::unordered_set<std::string> currentTripIds;
 
         for (auto trip : trips) {
-            const auto timeToDeparture = trip.departureTime.has_value()
-                                             ? std::make_optional(std::chrono::duration_cast<std::chrono::seconds>(
-                                                   trip.departureTime.value() - now))
-                                             : std::nullopt;
+            // For cancelled trips (when=null), use plannedTime; for active trips, use departureTime
+            const bool isCancelled = !trip.departureTime.has_value();
+            const auto timeToDisplay = isCancelled ? trip.plannedTime : trip.departureTime.value();
 
-            if (timeToDeparture.has_value() && minDepartureMinutes > 0) {
+            const auto timeToDeparture = std::chrono::duration_cast<std::chrono::seconds>(timeToDisplay - now);
+
+            if (minDepartureMinutes > 0) {
                 const auto minDepartureSeconds = std::chrono::seconds(minDepartureMinutes * 60);
-                if (timeToDeparture.value() < minDepartureSeconds) {
+                if (timeToDeparture < minDepartureSeconds) {
                     ESP_LOGD(TAG, "Filtering out trip %s (departure in %ld seconds, minimum is %ld seconds)",
-                             trip.tripId.c_str(), timeToDeparture.value().count(), minDepartureSeconds.count());
+                             trip.tripId.c_str(), timeToDeparture.count(), minDepartureSeconds.count());
                     continue;
                 }
             }
 
             currentTripIds.insert(trip.tripId);
-            departures_screen.updateDepartureItem(trip.tripId, trip.lineName, trip.directionName, timeToDeparture);
+            departures_screen.updateDepartureItem(trip.tripId, trip.lineName, trip.directionName, timeToDeparture,
+                                                  isCancelled);
         }
 
         // Remove items that are no longer in the current data

@@ -11,6 +11,7 @@
 struct Trip {
     const std::string tripId;
     const std::optional<std::chrono::system_clock::time_point> departureTime;
+    const std::chrono::system_clock::time_point plannedTime;
     const std::string directionName;
     const std::string lineName;
 };
