@@ -241,7 +241,7 @@ void DeparturesScreen::updateDepartureItem(const std::string &trip_id, const std
         const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(time_to_departure.value()).count();
         time_text = minutes <= 0 ? "Now" : std::to_string(minutes) + "'";
     } else {
-        // TODO Use more appropriate symbol for cancelled trips
+        // TODO Use LV_TEXT_DECOR_STRIKETHROUGH instead
         time_text = "=";
     }
 

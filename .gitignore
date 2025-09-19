@@ -5,6 +5,7 @@
 .cache/
 # `parcel serve` doesn't respect the `distDir` option :( https://github.com/parcel-bundler/parcel/issues/9096
 /dist/
+/parcel-bundle-reports/
 
 # ESP
 /build/
