@@ -21,7 +21,7 @@ void Screen::switchTo(lv_scr_load_anim_t anim_type, uint32_t time, uint32_t dela
     }
 }
 
-lv_obj_t *Screen::createPanel(lv_scroll_snap_t snap_type) {
+lv_obj_t *Screen::createPanel() {
     const ui_lock_guard lock;
     auto *panel = lv_obj_create(screen);
     lv_obj_set_width(panel, lv_pct(100));
@@ -30,9 +30,6 @@ lv_obj_t *Screen::createPanel(lv_scroll_snap_t snap_type) {
     lv_obj_set_align(panel, LV_ALIGN_CENTER);
     lv_obj_set_flex_flow(panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
-    lv_obj_set_scroll_snap_y(panel, snap_type);
-    lv_obj_clear_flag(panel, static_cast<lv_obj_flag_t>(LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM |
-                                                        LV_OBJ_FLAG_SCROLL_CHAIN));
     lv_obj_set_style_radius(panel, 0, DEFAULT_SELECTOR);
     lv_obj_set_style_border_width(panel, 0, DEFAULT_SELECTOR);
     lv_obj_set_style_pad_hor(panel, 10, DEFAULT_SELECTOR);
@@ -85,7 +82,7 @@ void ProvisioningScreen::init() {
     lv_obj_set_style_bg_color(screen, Color::black, DEFAULT_SELECTOR);
     lv_obj_set_style_bg_opa(screen, 255, DEFAULT_SELECTOR);
 
-    panel = createPanel(LV_SCROLL_SNAP_END);
+    panel = createPanel();
     lv_obj_set_y(panel, 0);
     lv_obj_set_style_height(panel, lv_pct(85), DEFAULT_SELECTOR);
     lv_obj_set_style_bg_opa(panel, LV_OPA_0, DEFAULT_SELECTOR);
@@ -222,7 +219,7 @@ void DeparturesScreen::init() {
     lv_obj_set_x(departure, 410);
     lv_label_set_text(departure, "ETD");
 
-    panel = createPanel(LV_SCROLL_SNAP_START);
+    panel = createPanel();
     lv_obj_set_style_bg_color(panel, Color::yellow, DEFAULT_SELECTOR);
     lv_obj_set_style_bg_opa(panel, 51, DEFAULT_SELECTOR);
 

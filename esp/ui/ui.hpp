@@ -41,7 +41,7 @@ class Screen {
     void switchTo(lv_scr_load_anim_t anim_type = LV_SCR_LOAD_ANIM_NONE, uint32_t time = 0, uint32_t delay = 0);
 
   protected:
-    lv_obj_t *createPanel(lv_scroll_snap_t snap_type);
+    lv_obj_t *createPanel();
     lv_obj_t *screen = nullptr;
 
     virtual void init() = 0;
