@@ -59,10 +59,9 @@ export function HomeTab() {
     );
 
     const [isStationChangeDialogOpen, setStationChangeDialogOpen] = useState(false);
-    // TODO Address "A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen."
-    const [minDepartureMinutes, setMinDepartureMinutes] = useState<number | undefined>(undefined);
-    const [maxDepartureCount, setMaxDepartureCount] = useState<number | undefined>(undefined);
-    const [showCancelledDepartures, setShowCancelledDepartures] = useState<boolean | undefined>(undefined);
+    const [minDepartureMinutes, setMinDepartureMinutes] = useState<number | null>(null);
+    const [maxDepartureCount, setMaxDepartureCount] = useState<number | null>(null);
+    const [showCancelledDepartures, setShowCancelledDepartures] = useState<boolean | null>(null);
     const { state: snackbarState, openWithMessage: openSnackbarWithMessage, close: closeSnackbar } = useSnackbarState();
 
     // Sync local state with settings response
@@ -75,6 +74,9 @@ export function HomeTab() {
     }, [settingsResponse]);
 
     const handleSaveSettings = () => {
+        if (minDepartureMinutes === null || maxDepartureCount === null || showCancelledDepartures === null) {
+            return;
+        }
         void triggerSettings(
             {
                 minDepartureMinutes,
@@ -196,7 +198,7 @@ export function HomeTab() {
                                 const value = parseInt(e.target.value);
                                 setMaxDepartureCount(
                                     Number.isNaN(value)
-                                        ? undefined
+                                        ? null
                                         : Math.min(Math.max(value, MAX_DEPARTURE_COUNT_MIN), MAX_DEPARTURE_COUNT_MAX)
                                 );
                             }}
@@ -220,7 +222,7 @@ export function HomeTab() {
                                 const value = parseInt(e.target.value);
                                 setMinDepartureMinutes(
                                     Number.isNaN(value)
-                                        ? undefined
+                                        ? null
                                         : Math.min(
                                               Math.max(value, MIN_DEPARTURE_MINUTES_MIN),
                                               MIN_DEPARTURE_MINUTES_MAX
@@ -242,7 +244,7 @@ export function HomeTab() {
                         <FormControlLabel
                             control={
                                 <Switch
-                                    checked={showCancelledDepartures}
+                                    checked={showCancelledDepartures ?? false}
                                     onChange={(e) => {
                                         setShowCancelledDepartures(e.target.checked);
                                     }}
@@ -257,8 +259,8 @@ export function HomeTab() {
                             disabled={
                                 isSettingsMutating ||
                                 isSettingsValidating ||
-                                minDepartureMinutes === undefined ||
-                                maxDepartureCount === undefined
+                                minDepartureMinutes === null ||
+                                maxDepartureCount === null
                             }
                             sx={{ alignSelf: 'flex-start', minWidth: 100 }}>
                             Save Settings
