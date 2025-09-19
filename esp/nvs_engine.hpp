@@ -12,6 +12,7 @@ class NVSEngine {
     esp_err_t setString(const std::string &key, const std::string &value);
     esp_err_t readSettings(JsonDocument *doc);
     esp_err_t setSettings(const JsonDocument &doc);
+    esp_err_t initializeDefaultSettingsIfMissing();
 
   private:
     nvs_handle_t handle;

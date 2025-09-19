@@ -252,25 +252,19 @@ static esp_err_t api_get_settings_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/json");
 
     NVSEngine nvs_engine("suntransit");
-    JsonDocument settings_doc;
-    auto err = nvs_engine.readSettings(&settings_doc);
+    std::string settings;
+    auto err = nvs_engine.readString("settings", &settings);
     if (err != ESP_OK) {
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to read settings");
         return ESP_FAIL;
     }
 
-    char buffer[512];
-    const auto bytesWritten = serializeJson(settings_doc, buffer);
-    if (bytesWritten == 0) {
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to serialize settings JSON");
-        return ESP_FAIL;
-    }
-    httpd_resp_send(req, buffer, bytesWritten);
+    httpd_resp_send(req, settings.c_str(), settings.length());
     return ESP_OK;
 }
 
 static esp_err_t api_set_settings_handler(httpd_req_t *req) {
-    char content[2048];
+    char content[4096];
     size_t recv_size = std::min(req->content_len, sizeof(content));
     int ret = httpd_req_recv(req, content, recv_size);
     if (ret <= 0) { /* 0 return value indicates connection closed */
@@ -371,7 +365,7 @@ static esp_err_t api_set_settings_handler(httpd_req_t *req) {
 httpd_handle_t setup_http_server() {
     init_fs();
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.stack_size = 1024 * 5;
+    config.stack_size = 1024 * 8;
     config.uri_match_fn = httpd_uri_match_wildcard;
     httpd_handle_t server = NULL;
 

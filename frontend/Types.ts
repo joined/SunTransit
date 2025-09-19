@@ -11,7 +11,7 @@ export type LineProductType = 'suburban' | 'subway' | 'tram' | 'bus' | 'ferry' |
 export interface ParsedStation {
     id: string;
     name: string;
-    linesByProduct: Partial<Record<LineProductType, Array<string>>>;
+    linesByProduct: Partial<Record<LineProductType, Array<{ id: string; name: string }>>>;
 }
 
 export interface StationWithProducts extends ParsedStation {

@@ -173,8 +173,8 @@ static esp_err_t app_touch_init(void) {
 }
 
 static esp_err_t app_lvgl_init(void) {
-    // TODO Maybe optimize stack size / affinity?
-    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
+    lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
+    lvgl_cfg.task_stack = 1024 * 6;
     ESP_RETURN_ON_ERROR(lvgl_port_init(&lvgl_cfg), TAG, "LVGL port initialization failed");
 
     /* Add LCD screen */

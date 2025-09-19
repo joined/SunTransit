@@ -75,12 +75,13 @@ const parseStationItem = ({ id, name, lines }: LocationsQueryResponseItem): Pars
         // Seems like some lines are reported multiple times, the first one looks like the right one
         R.uniqueBy((line) => line.id),
         R.map((line) => ({
+            id: line.id,
             name: line.name,
             // Regional trains are sometimes reported as buses
             product: line.id.startsWith('r') ? 'regional' : line.product,
         })),
         R.groupBy((line) => line.product),
-        R.mapValues((lines) => R.map(lines, (line) => line.name))
+        R.mapValues((lines) => R.map(lines, (line) => ({ id: line.id, name: line.name })))
     );
 
     return {
@@ -101,6 +102,7 @@ export default function StationChangeDialog({
     const [selectedOption, setSelectedOption] = useState<ParsedStation | null>(null);
     const [inputValue, setInputValue] = useState('');
 
+    // TODO Cancel previous request if a new one is made
     const searchLocations = (query: string) => {
         axios
             .get<LocationsQueryGetResponse>(getLocationsQueryURL(query))
@@ -116,6 +118,7 @@ export default function StationChangeDialog({
 
     useEffect(() => {
         if (inputValue) {
+            // TODO Show some spinner while searching to give user feedback
             searchLocationsDebounced(inputValue);
         }
     }, [searchLocationsDebounced, inputValue, selectedOption]);
@@ -155,15 +158,15 @@ export default function StationChangeDialog({
                     </Grid>
                     <Grid size={12}>
                         <Grid container columnGap={0.5} rowGap={0.5}>
-                            {Object.entries(linesByProduct).map(([product, lineNames]) =>
-                                lineNames.map((lineName) => (
+                            {Object.entries(linesByProduct).map(([product, lines]) =>
+                                lines.map((line) => (
                                     <Grid
-                                        key={lineName}
+                                        key={line.id}
                                         css={css`
                                             width: 40px;
                                             display: flex;
                                         `}>
-                                        <LineIcon name={lineName} type={product as LineProductType} />
+                                        <LineIcon name={line.name} type={product as LineProductType} />
                                     </Grid>
                                 ))
                             )}
