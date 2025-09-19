@@ -7,21 +7,24 @@ static const char *TAG = "NVS";
 static constexpr int DEFAULT_MIN_DEPARTURE_MINUTES = 0;
 static constexpr int DEFAULT_MAX_DEPARTURE_COUNT = 12;
 
-// TODO Have a version number for the NVS namespace so that we can migrate data
-// On opening the NVS, we should check the version number and erase the NVS if
-// it's not the current version
-// Alternatively, use a different NVS partition to store the data, which can be erased
-// via `esptool.py erase-region`, see https://docs.espressif.com/projects/esptool/en/latest/esp32s3/esptool/basic-commands.html#erase-flash-erase-flash-erase-region
-// without erasing the WiFi config stored in the default NVS partition
+// Application data is stored in a separate NVS partition (app_nvs) which can be erased
+// independently without affecting WiFi config stored in the default NVS partition
+// To erase app data: parttool.py erase_partition --partition-name=app_nvs
 
-NVSEngine::NVSEngine(const std::string nspace, nvs_open_mode mode) { nvs_open(nspace.c_str(), mode, &this->handle); };
+NVSEngine::NVSEngine(const std::string nspace, nvs_open_mode mode) {
+    nvs_open_from_partition(APP_NVS_PARTITION, nspace.c_str(), mode, &this->handle);
+};
 
 NVSEngine::~NVSEngine() { nvs_close(this->handle); };
 
 void NVSEngine::init() {
     esp_err_t err = nvs_flash_init();
     ESP_ERROR_CHECK(err);
-    ESP_LOGD(TAG, "Initialized");
+
+    err = nvs_flash_init_partition(APP_NVS_PARTITION);
+    ESP_ERROR_CHECK(err);
+
+    ESP_LOGD(TAG, "Initialized default and app NVS partitions");
 };
 
 esp_err_t NVSEngine::readString(const std::string &key, std::string *result) {

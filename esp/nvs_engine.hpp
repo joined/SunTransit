@@ -15,4 +15,5 @@ class NVSEngine {
 
   private:
     nvs_handle_t handle;
+    static constexpr const char *APP_NVS_PARTITION = "app_nvs";
 };

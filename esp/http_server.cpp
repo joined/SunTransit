@@ -376,6 +376,7 @@ httpd_handle_t setup_http_server() {
     httpd_handle_t server = NULL;
 
     // TODO This error check seems to fail after provisioning a fresh device :think:
+    // Likely because the provisioning manager also uses port 80 and deinitialization might take a bit
     ESP_ERROR_CHECK(httpd_start(&server, &config));
 
     httpd_uri_t api_get_sysinfo_uri = {
