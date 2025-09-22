@@ -251,7 +251,7 @@ void fetch_and_process_trips(BvgApiClient &apiClient) {
 
             currentTripIds.insert(trip.tripId);
             departures_screen.updateDepartureItem(trip.tripId, trip.lineName, trip.directionName, timeToDeparture,
-                                                  isCancelled);
+                                                  trip.productType, isCancelled);
         }
 
         // Remove items that are no longer in the current data
@@ -375,6 +375,8 @@ extern "C" void app_main(void) {
     Time::initSNTP();
 
     departures_screen.switchTo();
+    departures_screen.refreshLastUpdatedDisplay();
+
     ESP_ERROR_CHECK(esp_timer_create(&departuresRefresherTimerArgs, &departuresRefreshTimerHandle));
     ESP_ERROR_CHECK(esp_timer_start_periodic(
         departuresRefreshTimerHandle,

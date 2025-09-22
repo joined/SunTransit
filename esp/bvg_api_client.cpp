@@ -139,6 +139,7 @@ std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
     filter["departures"][0]["tripId"] = true;
     filter["departures"][0]["direction"] = true;
     filter["departures"][0]["line"]["name"] = true;
+    filter["departures"][0]["line"]["product"] = true;
     filter["departures"][0]["when"] = true;
     filter["departures"][0]["plannedWhen"] = true;
 
@@ -161,6 +162,7 @@ std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
         const char *tripId = departure["tripId"];
         const char *direction = departure["direction"];
         const char *line = departure["line"]["name"];
+        const char *product = departure["line"]["product"];
 
         const auto departure_time =
             departure["when"].isNull()
@@ -173,7 +175,8 @@ std::vector<Trip> BvgApiClient::fetchAndParseTrips(const std::string &stationId,
                          .departureTime = departure_time,
                          .plannedTime = planned_time,
                          .directionName = direction,
-                         .lineName = line});
+                         .lineName = line,
+                         .productType = product});
     }
 
     return trips;

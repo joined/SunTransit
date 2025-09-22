@@ -14,6 +14,7 @@ struct Trip {
     const std::chrono::system_clock::time_point plannedTime;
     const std::string directionName;
     const std::string lineName;
+    const std::string productType;
 };
 
 class BvgApiClient {

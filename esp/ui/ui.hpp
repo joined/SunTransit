@@ -41,7 +41,6 @@ class Screen {
     void switchTo(lv_scr_load_anim_t anim_type = LV_SCR_LOAD_ANIM_NONE, uint32_t time = 0, uint32_t delay = 0);
 
   protected:
-    lv_obj_t *createPanel();
     lv_obj_t *screen = nullptr;
 
     virtual void init() = 0;
@@ -85,9 +84,11 @@ class ProvisioningScreen : public Screen {
 class DepartureItem {
   public:
     void create(lv_obj_t *parent, const std::string &line_text, const std::string &direction_text,
-                const std::string &time_text, const std::chrono::seconds &time_to_departure, bool is_cancelled = false);
+                const std::string &time_text, const std::chrono::seconds &time_to_departure,
+                const std::string &product_type, bool is_cancelled = false);
     void update(const std::string &line_text, const std::string &direction_text, const std::string &time_text,
-                const std::chrono::seconds &time_to_departure, bool is_cancelled = false);
+                const std::chrono::seconds &time_to_departure, const std::string &product_type,
+                bool is_cancelled = false);
     void destroy();
     lv_obj_t *getItem() const { return item; }
     std::chrono::seconds getDepartureTime() const { return departure_time; }
@@ -101,6 +102,7 @@ class DepartureItem {
     std::chrono::seconds departure_time;
 
     void applyStrikethroughStyle(bool enable);
+    lv_color_t getProductColor(const std::string &product_type);
 };
 
 class DeparturesScreen : public Screen {
@@ -108,7 +110,7 @@ class DeparturesScreen : public Screen {
     void init();
     void updateDepartureItem(const std::string &trip_id, const std::string &line_text,
                              const std::string &direction_text, const std::chrono::seconds &time_to_departure,
-                             bool is_cancelled = false);
+                             const std::string &product_type, bool is_cancelled = false);
     void removeDepartureItem(const std::string &trip_id);
     void addTextItem(const std::string &text);
     void clean();
@@ -122,6 +124,8 @@ class DeparturesScreen : public Screen {
     void showStationNotFoundError();
 
   private:
+    lv_obj_t *header = nullptr;
+    lv_obj_t *footer = nullptr;
     lv_obj_t *line = nullptr;
     lv_obj_t *direction = nullptr;
     lv_obj_t *departure = nullptr;
