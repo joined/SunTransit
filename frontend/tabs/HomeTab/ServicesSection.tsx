@@ -9,7 +9,7 @@ import { LineProductType, StationWithProducts } from 'frontend/Types';
 
 interface ServicesRowProps {
     product: LineProductType;
-    lines: Array<{ id: string; name: string }>;
+    lineNames: Array<string>;
     enabled: boolean;
     showToggle: boolean;
     onEnabledChange: (enabled: boolean) => void;
@@ -19,7 +19,7 @@ interface ServicesRowProps {
 
 function ServicesProductRow({
     product,
-    lines,
+    lineNames,
     enabled,
     onEnabledChange,
     isToggleDisabled,
@@ -55,15 +55,15 @@ function ServicesProductRow({
                 )}
             </Stack>
             <Grid container key={product} columnGap={1} rowGap={1}>
-                {lines.map((line) => (
+                {lineNames.map((name, index) => (
                     // TODO Figure out what's the deal with the SVG size
                     <Grid
-                        key={line.id}
+                        key={index}
                         css={css`
                             width: 60px;
                             height: 23px;
                         `}>
-                        <LineIcon name={line.name} type={product} disabled={!enabled} fontSize="small" />
+                        <LineIcon name={name} type={product} disabled={!enabled} fontSize="small" />
                     </Grid>
                 ))}
             </Grid>
@@ -107,7 +107,7 @@ export default function ServicesSection({
                     <ServicesProductRow
                         key={product}
                         product={product as LineProductType}
-                        lines={lines}
+                        lineNames={lines}
                         enabled={currentStation.enabledProducts.includes(product as LineProductType)}
                         isToggleDisabled={areTogglesDisabled}
                         onEnabledChange={(enabled) => {

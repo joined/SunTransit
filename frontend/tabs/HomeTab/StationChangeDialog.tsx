@@ -75,13 +75,12 @@ const parseStationItem = ({ id, name, lines }: LocationsQueryResponseItem): Pars
         // Seems like some lines are reported multiple times, the first one looks like the right one
         R.uniqueBy((line) => line.id),
         R.map((line) => ({
-            id: line.id,
             name: line.name,
             // Regional trains are sometimes reported as buses
             product: line.id.startsWith('r') ? 'regional' : line.product,
         })),
         R.groupBy((line) => line.product),
-        R.mapValues((lines) => R.map(lines, (line) => ({ id: line.id, name: line.name })))
+        R.mapValues((lines) => R.map(lines, (line) => line.name))
     );
 
     return {
@@ -158,15 +157,15 @@ export default function StationChangeDialog({
                     </Grid>
                     <Grid size={12}>
                         <Grid container columnGap={0.5} rowGap={0.5}>
-                            {Object.entries(linesByProduct).map(([product, lines]) =>
-                                lines.map((line) => (
+                            {Object.entries(linesByProduct).map(([product, lineNames]) =>
+                                lineNames.map((lineName, index) => (
                                     <Grid
-                                        key={line.id}
+                                        key={index}
                                         css={css`
                                             width: 40px;
                                             display: flex;
                                         `}>
-                                        <LineIcon name={line.name} type={product as LineProductType} />
+                                        <LineIcon name={lineName} type={product as LineProductType} />
                                     </Grid>
                                 ))
                             )}
