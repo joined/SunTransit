@@ -6,9 +6,7 @@
 #include "lvgl.h"
 #include "ui.hpp"
 
-#define SDL_HOR_RES 480
-#define SDL_VER_RES 320
-#define SDL_ZOOM 3
+#define SDL_ZOOM 2
 
 namespace LVGL_SDL {
 

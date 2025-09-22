@@ -12,9 +12,6 @@ set(EXTRA_COMPONENT_DIRS esp)
 # For the LCD/Touch initializers in `lcd.h`
 idf_build_set_property(COMPILE_OPTIONS "-Wno-missing-field-initializers" APPEND)
 
-# TODO Fix deprecated enum conversion warning
-# Seems like it's fixed on `master`, but not in the latest release (v8.3)
-
 # TODO The following should be handled via menuconfig, but they're missing in the KConfig
 # TODO These cause warnings like:
 # `warning: ignoring attribute 'section (".iram1.4")' because it conflicts with previous 'section (".iram1.1")' [-Wattributes]`
@@ -24,5 +21,8 @@ idf_build_set_property(COMPILE_OPTIONS "-DLV_ATTRIBUTE_TICK_INC=IRAM_ATTR" APPEN
 
 # For the fonts
 idf_build_set_property(COMPILE_OPTIONS "-DLV_LVGL_H_INCLUDE_SIMPLE" APPEND)
+
+# Target-specific lockfile
+idf_build_set_property(DEPENDENCIES_LOCK "dependencies.lock.${IDF_TARGET}")
 
 project(suntransit)

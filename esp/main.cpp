@@ -16,7 +16,7 @@
 
 #include "bvg_api_client.hpp"
 #include "http_server.hpp"
-#include "lcd.hpp"
+#include "lcd_common.hpp"
 #include "nvs_engine.hpp"
 #include "time.hpp"
 #include "ui.hpp"

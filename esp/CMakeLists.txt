@@ -1,7 +1,16 @@
 file(GLOB_RECURSE FONT_SRCS ui/fonts/*.c)
 
+# Select LCD implementation based on target
+if(IDF_TARGET STREQUAL "esp32")
+    set(LCD_IMPL "lcd_3248s035c.cpp")
+elseif(IDF_TARGET STREQUAL "esp32s3")
+    set(LCD_IMPL "lcd_8048s070c.cpp")
+else()
+    message(FATAL_ERROR "Unsupported target: ${IDF_TARGET}")
+endif()
+
 idf_component_register(
-    SRCS "nvs_engine.cpp" "utils.cpp" "bvg_api_client.cpp" "lcd.cpp" "main.cpp" "http_server.cpp" "ui/ui.cpp" "time.cpp" ${FONT_SRCS}
+    SRCS "nvs_engine.cpp" "utils.cpp" "bvg_api_client.cpp" ${LCD_IMPL} "main.cpp" "http_server.cpp" "ui/ui.cpp" "time.cpp" ${FONT_SRCS}
     INCLUDE_DIRS "." "ui"
     PRIV_REQUIRES esp_app_format esp_http_client esp_http_server esp_timer esp_wifi json nvs_flash spiffs vfs wifi_provisioning lwip
 )
