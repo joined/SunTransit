@@ -3,7 +3,8 @@
     "scripts": {
         "simulator:fullclean": "pio run -t fullclean",
         "simulator:clean": "pio run -t clean",
-        "simulator:run": "pio run -t upload",
+        "simulator:run:3": "pio run -e 3248s035c -t upload",
+        "simulator:run:8": "pio run -e 8048s070c -t upload",
         "esp:erase-config": "parttool.py erase_partition --partition-name=app_nvs",
         "lint:frontend": "concurrently 'pnpm lint:frontend:eslint' 'pnpm lint:frontend:ts' 'pnpm lint:prettier'",
         "lint:frontend:eslint": "eslint .",

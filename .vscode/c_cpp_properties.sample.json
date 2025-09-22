@@ -25,14 +25,48 @@
             }
         },
         {
-            "name": "Simulator",
+            "name": "Simulator 3248s035c",
             "cStandard": "c23",
             "cppStandard": "c++23",
             "defines": [
                 "PLATFORMIO=60118",
                 "USE_SDL",
                 "LV_CONF_INCLUDE_SIMPLE",
-                "LV_LVGL_H_INCLUDE_SIMPLE"
+                "LV_LVGL_H_INCLUDE_SIMPLE",
+                "SDL_HOR_RES=480",
+                "SDL_VER_RES=320"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "includePath": [
+                "${workspaceFolder}/esp/ui",
+                "${workspaceFolder}/simulator/src",
+                "${workspaceFolder}/simulator/include",
+                "${workspaceFolder}/.pio/libdeps/emulator/lv_drivers",
+                "${workspaceFolder}/.pio/libdeps/emulator/lvgl",
+                "${workspaceFolder}/.pio/libdeps/emulator/lvgl/src"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "${workspaceFolder}/esp/ui",
+                    "${workspaceFolder}/simulator/src",
+                    "${workspaceFolder}/simulator/include",
+                    "${workspaceFolder}/.pio/libdeps/emulator/lvgl",
+                    "${workspaceFolder}/.pio/libdeps/emulator/lvgl/src"
+                ]
+            }
+        },
+        {
+            "name": "Simulator 8048s070c",
+            "cStandard": "c23",
+            "cppStandard": "c++23",
+            "defines": [
+                "PLATFORMIO=60118",
+                "USE_SDL",
+                "LV_CONF_INCLUDE_SIMPLE",
+                "LV_LVGL_H_INCLUDE_SIMPLE",
+                "SDL_HOR_RES=800",
+                "SDL_VER_RES=480"
             ],
             "compilerPath": "/usr/bin/gcc",
             "includePath": [

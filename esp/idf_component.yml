@@ -1,10 +1,21 @@
 ## IDF Component Manager Manifest File
+targets:
+  - esp32
+  - esp32s3
+
 dependencies:
   bblanchon/arduinojson: "^7.0.0"
+
   espressif/mdns: "^1.2.1"
-  espressif/esp_lcd_st7796: "^1.0.0"
+
+  espressif/esp_lcd_st7796: 
+    version: "^1.0.0"
+    rules:
+        - if: target == "esp32"
+
   espressif/esp_lcd_touch_gt911: "^1.0.7~1"
+
   espressif/esp_lvgl_port: "^2.6.0"
-  ## Required IDF version
+
   idf:
-    version: ">=4.1.0"
+    version: ">=5.5.1"

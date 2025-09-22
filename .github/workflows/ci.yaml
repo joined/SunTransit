@@ -112,21 +112,26 @@ jobs:
     build_esp:
         name: Build and archive ESP firmware
         runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                idf_target: [esp32, esp32s3]
 
         steps:
             - name: Checkout
               uses: actions/checkout@v5
             - name: Build ESP binaries
               uses: ./.github/actions/build-esp
+              with:
+                  idf_target: ${{ matrix.idf_target }}
             - name: Archive build output artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: merged-firmware
+                  name: merged-firmware-${{ matrix.idf_target }}
                   path: build/merged-firmware.bin
                   compression-level: 0
 
     build_simulator:
-        name: Build and archive simulator binary
+        name: Build and archive simulator binaries
         timeout-minutes: 10
         runs-on: ubuntu-latest
         container: joined/sdl2:latest
@@ -138,7 +143,7 @@ jobs:
                   path: |
                       ~/.cache/pip
                       ~/.platformio/.cache
-                  key: ${{ runner.os }}-pio-v2
+                  key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
             - uses: actions/setup-python@v6
               with:
                   python-version: '3.12'
@@ -147,9 +152,15 @@ jobs:
             - name: Build PlatformIO Project
               run: |
                   pio run
-            - name: Archive build output artifacts
+            - name: Archive 480x320 simulator build
               uses: actions/upload-artifact@v4
               with:
-                  name: simulator
-                  path: .pio/build/emulator/program
+                  name: simulator_480x320
+                  path: .pio/build/3248s035c/program
+                  compression-level: 0
+            - name: Archive 800x480 simulator build
+              uses: actions/upload-artifact@v4
+              with:
+                  name: simulator_800x480
+                  path: .pio/build/8048s070c/program
                   compression-level: 0

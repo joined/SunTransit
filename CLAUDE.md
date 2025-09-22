@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SunTransit is an ESP32-based IoT project that displays Berlin public transport (BVG) departure information on Sunton 3.5" LCD displays. The project consists of three main components:
+SunTransit is an ESP32-based IoT project that displays Berlin public transport (BVG) departure information on Sunton LCD displays.
+The project consists of three main components:
 
 1. **ESP32 Firmware** - ESP-IDF based C++ application
 2. **React Frontend** - Web interface for configuration
@@ -27,12 +28,12 @@ SunTransit is an ESP32-based IoT project that displays Berlin public transport (
 - `idf.py monitor` - Open serial monitor
 - `idf.py flash monitor` - Flash and immediately start monitoring
 - `idf.py menuconfig` - Configure project settings
-- `pip install -r requirements.txt` - Install Python dependencies
 
 ### Simulator Development
 - Install libsdl2 dependency: `sudo apt-get install libsdl2-dev`
 - `pio run` - Build simulator (runs from project root, includes UI from `esp/ui/` directly)
-- `pio run -t upload` - Build and run simulator
+- `pio run -t upload -e 3248s035c` - Build and run simulator for 480x320px screen
+- `pio run -t upload -e 8048s070c` - Build and run simulator for 800x480px screen
 
 ### Code Quality
 - `clang-format -i esp/**/*.{c,cpp,h,hpp}` - Format C++ code
@@ -51,23 +52,19 @@ SunTransit is an ESP32-based IoT project that displays Berlin public transport (
 - **Time Management** (`time.*`) - SNTP synchronization and timezone handling
 
 ### Frontend Structure (`frontend/` directory)
-- React 18 SPA with Material-UI components
+- React 19 SPA with Material-UI components
 - Uses SWR for API state management
 - TypeScript throughout
-- Parcel v2.11.0 for bundling
+- Parcel for bundling
 - Automatically gzipped during build for ESP32 embedding
 
 ### Development Workflow Notes
 - The frontend is built first and embedded into ESP32 firmware
-- VSCode C++ extension conflicts require simulator to be separate workspace
 - Copy `.vscode/c_cpp_properties.sample.json` to `.vscode/c_cpp_properties.json` for ESP-IDF development
 - Pre-commit hooks enforce formatting and linting
 
 ### Hardware Target
-- Sunton 3248S035C boards (ESP32 + 3.5" LCD)
-- 480x320px ST7796 display controller
-- GT911 touch controller
-- 4MB flash with custom partition table
+Sunton 3248S035C (ESP32 + 3.5" LCD 480x320px) and 8048S070C (ESP32-S3 + 7.0" LCD 800x480px)
 
 ### Memory and Performance Considerations
 - LVGL configuration optimized for ESP32 memory constraints

@@ -8,7 +8,7 @@ An [ESP32](https://www.espressif.com/en/products/socs/esp32) project to monitor 
 
 ## Features
 
-- Based on Sunton [3248S035C](https://www.openhasp.com/0.7.0/hardware/sunton/esp32-3248s035/) boards (3.5", 480x320px). In the future, support for other boards is planned.
+- Supports Sunton [3248S035C](https://www.openhasp.com/0.7.0/hardware/sunton/esp32-3248s035/) (3.5", 480x320px) and [8048S070C](https://www.openhasp.com/0.7.0/hardware/sunton/esp32-8048s0xx/) (7.0", 800x480px).
 - WiFi 🛜 provisioning via the "ESP SoftAP Provisioning" app 📱
 - Web based configuration
 - Selection of station to show departures from (BVG)
