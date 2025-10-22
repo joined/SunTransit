@@ -14,7 +14,7 @@
 #include <freertos/task.h>
 #include <mutex>
 
-#include "lcd.hpp"
+#include "lcd_3248s035c.hpp"
 
 /* LCD size */
 #define LCD_ST7796_H_RES (480)

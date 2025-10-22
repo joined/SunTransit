@@ -6,6 +6,10 @@ inputs:
         description: 'ESP-IDF version to use'
         required: false
         default: 'v5.5.1'
+    idf_target:
+        description: 'ESP-IDF target to use (esp32, esp32s3)'
+        required: false
+        default: 'esp32'
 
 runs:
     using: 'composite'
@@ -30,13 +34,13 @@ runs:
           uses: actions/cache@v4
           with:
               path: .ccache
-              key: ccache-${{ runner.os }}-esp32-${{ inputs.idf_version }}-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig.defaults', 'dependencies.lock') }}
+              key: ccache-${{ runner.os }}-${{ inputs.idf_target }}-${{ inputs.idf_version }}-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig.defaults', format('sdkconfig.defaults.{0}', inputs.idf_target), format('dependencies.lock.{0}', inputs.idf_target)) }}
 
         - name: Cache managed components
           uses: actions/cache@v4
           with:
               path: managed_components
-              key: managed_components-${{ runner.os }}-${{ hashFiles('dependencies.lock') }}
+              key: managed_components-${{ runner.os }}-${{ inputs.idf_target }}-${{ hashFiles(format('dependencies.lock.{0}', inputs.idf_target)) }}
 
         - name: esp-idf build and merge firmware
           shell: bash
@@ -45,7 +49,7 @@ runs:
               IMAGE="espressif/idf:${{ inputs.idf_version }}"
 
               docker run --rm -t \
-                -e IDF_TARGET="esp32" \
+                -e IDF_TARGET="${{ inputs.idf_target }}" \
                 -e IDF_CCACHE_ENABLE=1 \
                 -e CCACHE_DIR="/app/${{ github.repository }}/.ccache" \
                 -e GITHUB_ACTIONS=true \
