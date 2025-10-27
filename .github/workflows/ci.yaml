@@ -119,7 +119,7 @@ jobs:
             - name: Build ESP binaries
               uses: ./.github/actions/build-esp
             - name: Archive build output artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: merged-firmware
                   path: build/merged-firmware.bin
@@ -148,7 +148,7 @@ jobs:
               run: |
                   pio run
             - name: Archive build output artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: simulator
                   path: .pio/build/emulator/program
